@@ -1,0 +1,35 @@
+{
+  "txHash": "0x5c504ed432cb51138bcf09aa5e8a410dd4a1e204ef84bfed1be16dfba1b22026",
+  "blockNumber": 19840211,
+  "from": "0xda9dfa130df4de4673b89022ee50ff26f6ea73cf",
+  "to": "0x7a250d5630b4cf539739df2c5dacb4c659f2488d",
+  "status": "Success",
+  "traceTree": {
+    "type": "CALL",
+    "from": "0xda9dfa130df4de4673b89022ee50ff26f6ea73cf",
+    "to": "0x7a250d5630b4cf539739df2c5dacb4c659f2488d",
+    "value": "1.5 ETH",
+    "gasUsed": 125000,
+    "functionName": "swapExactETHForTokens(uint amountOutMin, address[] path, address to, uint deadline)",
+    "calls": [
+      {
+        "type": "CALL",
+        "from": "0x7a250d5630b4cf539739df2c5dacb4c659f2488d",
+        "to": "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+        "value": "1.5 ETH",
+        "gasUsed": 25000,
+        "functionName": "deposit()",
+        "calls": []
+      },
+      {
+        "type": "DELEGATECALL",
+        "from": "0x7a250d5630b4cf539739df2c5dacb4c659f2488d",
+        "to": "0xef1c6e67703c7bd7107eed83034424474c4a234a",
+        "value": "0 ETH",
+        "gasUsed": 85000,
+        "functionName": "uniswapV3Swap(bytes path, address recipient, uint256 amountIn)",
+        "calls": []
+      }
+    ]
+  }
+}
