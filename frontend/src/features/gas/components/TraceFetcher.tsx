@@ -8,8 +8,11 @@ export default function TraceFetcher() {
   const [trace, setTrace] = useState(null);
 
   async function fetchTrace() {
-    const res = await fetch("http://localhost:3000/api/trace", {
+    const res = await fetch("http://localhost:8000/api/trace", {
       method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
       body: JSON.stringify({ txHash: tx }),
     });
     const data = await res.json();

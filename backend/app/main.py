@@ -32,7 +32,7 @@ app.add_middleware(
 
 
 # api endpoints
-@app.post("/trace")
+@app.post("/api/trace")
 def trace_tx(req: TxRequest):
     """ api for fetching tx and its trace """
     print("--- backend api trace called ---")
