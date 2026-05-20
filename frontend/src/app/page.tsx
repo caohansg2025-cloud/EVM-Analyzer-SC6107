@@ -3,37 +3,52 @@
  *
  * Design reference: docs/frontend-design.md §9.3
  *
- * Phase 1 layout: <TxHashInput /> at the top, three <Tabs> below with
- * placeholder content. Each placeholder will be replaced in a later commit:
- *   - <TraceTab>     — Commit 9
- *   - <GasStateTab>  — Commit 12
- *   - <SecurityTab>  — Commit 13
+ * Phase 2 changes vs Phase 1:
+ *   - Added `txHash` state, defaulting to the first SAMPLE_TXS entry so
+ *     the Trace tab demos data immediately on first load.
+ *   - Replaced the Trace placeholder with the real <TraceTab /> component.
+ *   - The Gas & State and Security tabs still show "coming in Commit N"
+ *     placeholders — they're filled in Phase 3.
  *
- * Marked `"use client"` because <Tabs> is a Radix-UI primitive that uses
- * client-only React context to coordinate the active tab.
+ * `"use client"` is required because <Tabs> (Radix-based) uses client
+ * context, AND because we use React.useState for txHash.
  */
 "use client";
+import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { TxHashInput } from "@/components/input/TxHashInput";
+import { TraceTab } from "@/components/trace/TraceTab";
+import { SAMPLE_TXS } from "@/lib/constants";
 
 export default function HomePage() {
+  /*
+   * txHash governs which transaction the Trace tab fetches. We seed it
+   * with the first sample so the page is "self-demonstrating" — without
+   * Commit 14's input box being functional yet, the only way to show
+   * actual data in Phase 2 is to pre-populate.
+   *
+   * The `?? null` fallback handles the (impossible-here) case where
+   * SAMPLE_TXS is empty, so TypeScript is satisfied without `!` non-null
+   * assertions.
+   */
+  const [txHash] = useState<string | null>(SAMPLE_TXS[0]?.txHash ?? null);
+
   return (
     <div className="space-y-6">
       <TxHashInput />
       <Tabs defaultValue="trace" className="w-full">
-        {/* Three equal-width tab triggers, capped to a sensible max width. */}
         <TabsList className="grid grid-cols-3 w-full max-w-md">
           <TabsTrigger value="trace">Trace</TabsTrigger>
           <TabsTrigger value="gas-state">Gas & State</TabsTrigger>
           <TabsTrigger value="security">Security</TabsTrigger>
         </TabsList>
 
-        {/* Placeholders make it obvious which commit fills each panel. */}
+        {/* Live in Phase 2: */}
         <TabsContent value="trace">
-          <div className="text-muted-foreground py-12 text-center">
-            Trace view — coming in Commit 9
-          </div>
+          <TraceTab txHash={txHash} />
         </TabsContent>
+
+        {/* Placeholders for Phase 3 / 4: */}
         <TabsContent value="gas-state">
           <div className="text-muted-foreground py-12 text-center">
             Gas & State view — coming in Commit 12
