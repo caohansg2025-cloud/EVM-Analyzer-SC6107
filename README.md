@@ -33,3 +33,75 @@
 3.  **【原子提交】** 保持 **每日 Commit** 的好习惯。每次提交的日志请语义化，例如：`feat: 增加 Trace 十六进制转十进制递归函数` 或 `fix: 修复饼图组件在零数据下的红屏 Bug`。
 4.  **【合并流程】** 本地开发测试无误后，将分支推送到 GitHub，并发起 **Pull Request (PR)**。由项目经理（5号位）进行 Code Review 后统一合并入主分支。
 
+---
+
+## How to Run
+
+> 各模块的本地运行说明集中在这里。每位组员负责更新自己那一栏。
+
+### 环境前置（所有模块通用）
+
+- Python ≥ 3.10
+- [`uv`](https://docs.astral.sh/uv/) — 项目依赖管理器
+- 仓库根目录执行一次：
+  ```bash
+  uv sync
+  ```
+  这会在 `.venv/` 内安装所有声明在 `pyproject.toml` 中的依赖。
+
+### 3 号位 · Security Scan（`feature/security-scan`）
+
+模块详细文档：[`docs/security-analysis.md`](docs/security-analysis.md)
+
+**首次配置**（安装合约对应的 `solc` 版本）：
+
+```bash
+uv run solc-select install 0.8.20
+uv run solc-select install 0.7.6
+```
+
+扫描器会根据合约的 `pragma solidity` 自动切换到对应版本，无需手动 `solc-select use`。
+
+**运行扫描**（输出 JSON 到 stdout）：
+
+```bash
+uv run python backend/security_scan.py test_contracts/VulnerableVault.sol --pretty
+```
+
+常用选项：
+
+| 命令 | 作用 |
+| --- | --- |
+| `--pretty` | 缩进美化 JSON。 |
+| `--output PATH` | 同时把 JSON 写入文件。 |
+| `--solc-version X.Y.Z` | 强制指定 solc 版本（覆盖 pragma 自动检测）。 |
+
+**运行单元测试**：
+
+```bash
+uv run pytest
+```
+
+**批量扫描全部 fixture**：
+
+```bash
+for f in test_contracts/*.sol; do
+  echo "=== $f ==="
+  uv run python backend/security_scan.py "$f" --pretty
+done
+```
+
+退出码：`0` 成功（含 `CompletedWithNoFindings`）；`1` 扫描失败（JSON 中带 `error` 字段）；`2` 命令行误用。
+
+### 1 号位 · Trace API（`feature/trace-api`）
+
+_待补充。_
+
+### 2 号位 · Gas Profile（`feature/gas-profile`）
+
+_待补充。_
+
+### 4 号位 · Frontend UI（`feature/frontend-ui`）
+
+_待补充。_
+
