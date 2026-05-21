@@ -9,17 +9,33 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@base-ui/react": "^1.4.1",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
     "ethers": "^6.16.0",
+    "lucide-react": "^1.16.0",
     "next": "16.2.6",
+    "next-themes": "^0.4.6",
     "react": "19.2.4",
-    "react-dom": "19.2.4"
+    "react-dom": "19.2.4",
+    "react-syntax-highlighter": "^16.1.1",
+    "recharts": "^3.8.1",
+    "shadcn": "^4.7.0",
+    "sonner": "^2.0.7",
+    "swr": "^2.4.1",
+    "tailwind-merge": "^3.6.0",
+    "tw-animate-css": "^1.4.0"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+<<<<<<< HEAD
     "babel-plugin-react-compiler": "1.0.0",
+=======
+    "@types/react-syntax-highlighter": "^15.5.13",
+>>>>>>> 0f29c41ace239d7a724d8de2a47d4e96f5f0a858
     "eslint": "^9",
     "eslint-config-next": "16.2.6",
     "tailwindcss": "^4",
