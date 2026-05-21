@@ -3,15 +3,12 @@
  *
  * Design reference: docs/frontend-design.md §9.3
  *
- * Phase 3 changes vs Phase 2:
- *   - Added `contractAddress` state, seeded from SAMPLE_CONTRACTS[0]
- *     so the Security tab demos data immediately.
- *   - Replaced the Gas & State placeholder with the real <GasStateTab />.
- *   - Replaced the Security placeholder with the real <SecurityTab />.
- *   - All three tabs are now interactive against mock data.
+ * Phase 4 changes vs Phase 3:
+ *   - `txHash` and `contractAddress` state now have setters (Phase 3 was
+ *     read-only). They are passed to the now-functional TxHashInput.
+ *   - The user can change either via the sample dropdown or manual entry.
  *
- * `"use client"` is required because Tabs (Radix) uses client context
- * AND because we use useState for both txHash and contractAddress.
+ * `"use client"` is required for the useState calls and Radix Tabs context.
  */
 "use client";
 import { useState } from "react";
@@ -24,22 +21,23 @@ import { SAMPLE_TXS, SAMPLE_CONTRACTS } from "@/lib/constants";
 
 export default function HomePage() {
   /*
-   * `txHash` drives Trace + Gas & State tabs. `contractAddress` drives the
-   * Security tab. Both are seeded with the first sample entry so all
-   * three tabs demonstrate themselves without requiring user input
-   * (Commit 14 in Phase 4 makes the TxHashInput functional).
-   *
-   * The `?? null` guards against an empty constants array — TypeScript
-   * stays satisfied without `!` non-null assertions.
+   * Both states are seeded with the first sample entry so the page is
+   * self-demonstrating on first load. Phase 4 unlocks TxHashInput, so
+   * users can now change either value via the UI.
    */
-  const [txHash] = useState<string | null>(SAMPLE_TXS[0]?.txHash ?? null);
-  const [contractAddress] = useState<string | null>(
+  const [txHash, setTxHash] = useState<string | null>(SAMPLE_TXS[0]?.txHash ?? null);
+  const [contractAddress, setContractAddress] = useState<string | null>(
     SAMPLE_CONTRACTS[0]?.address ?? null,
   );
 
   return (
     <div className="space-y-6">
-      <TxHashInput />
+      <TxHashInput
+        currentTxHash={txHash}
+        currentContract={contractAddress}
+        onTxHashChange={setTxHash}
+        onContractChange={setContractAddress}
+      />
       <Tabs defaultValue="trace" className="w-full">
         <TabsList className="grid grid-cols-3 w-full max-w-md">
           <TabsTrigger value="trace">Trace</TabsTrigger>
