@@ -1,7 +1,7 @@
 import pytest
 from fastapi.testclient import TestClient
-# 引入trace_api.py
-from backend.trace_api import app 
+# 引入 unified app
+from backend.app.main import app 
 
 # 创建“模拟浏览器”，在不启动真实服务器的情况下，直接发请求
 client = TestClient(app)
