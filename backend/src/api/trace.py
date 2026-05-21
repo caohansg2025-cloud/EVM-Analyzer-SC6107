@@ -2,9 +2,10 @@ import os
 import logging 
 from fastapi import HTTPException
 from web3 import Web3
+from web3.types import RPCEndpoint
 from dotenv import load_dotenv
 
-from backend.src.api.helper import norm_hash
+from src.api.helper import norm_hash
 
 
 load_dotenv()
@@ -28,7 +29,7 @@ def trace_transaction(tx_hash: str):
         "timeout": "30s"
     }
     struct_trace = w3.provider.make_request(
-        "debug_traceTransaction",
+        RPCEndpoint("debug_traceTransaction"),
         [tx_hash, struct_trace_payload]
     )
     call_trace_payload = {
@@ -36,7 +37,7 @@ def trace_transaction(tx_hash: str):
         "tracer": "callTracer"
     }
     call_trace = w3.provider.make_request(
-        "debug_traceTransaction",
+        RPCEndpoint("debug_traceTransaction"),
         [tx_hash, call_trace_payload]
     )
     state_diff_trace_payload = {
@@ -44,7 +45,7 @@ def trace_transaction(tx_hash: str):
         "tracer": "stateDiffTracer"
     }
     state_diff_trace = w3.provider.make_request(
-        "debug_traceTransaction",
+        RPCEndpoint("debug_traceTransaction"),
         [tx_hash, state_diff_trace_payload]
     )
     if struct_trace.get("error"):

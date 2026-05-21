@@ -3,7 +3,7 @@ from src.gas.parser import (
 )
 
 
-def gas_profiling(receipt, call_tree, struct_logs, opcode_gas):
+def gas_profiling(receipt, call_tree, struct_logs):
     """ gas profile """
     total_gas = _to_int(receipt.get("gasUsed")) if receipt else 0
 

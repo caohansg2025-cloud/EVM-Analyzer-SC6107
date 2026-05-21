@@ -3,21 +3,23 @@ from collections import OrderedDict
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 # api
-from backend.src.api.dto import (
+from src.api.dto import (
     TxRequest
 )
-from backend.src.api.tx import (
+from src.api.tx import (
     get_transaction,
-    get_receipt,
+    get_receipt
 )
-from backend.src.api.trace import (
+from src.api.trace import (
     trace_transaction
 )
 # gas and state feature imports
 from src.gas.analyzer import (
-    summarize_trace
+    gas_profiling
 )
-
+from src.state.analyzer import (
+    state_diffs
+)
 
 # ------------------------ app: init and config --------------------------------
 app = FastAPI()
@@ -57,48 +59,26 @@ trace_cache = LRUCache(capacity=256)
 @app.post("/api/trace")
 def trace_tx(req: TxRequest):
     """ api for fetching tx and its trace """
-    print("--- backend api trace called ---")
-    tx_hash = req.txHash
-
-    print("fetching tx: " + tx_hash + " ...")
-    tx = get_transaction(tx_hash)
-    receipt = get_receipt(tx_hash)
-    print("end of fetching tx")
-    
-    print("requesting trace...")
-    trace = trace_transaction(tx_hash)
-
-    print("trace received")
-
-    summary = summarize_trace(trace, dict(receipt))
-    print("summary:", summary)
-
-    return {
-        "tx": dict(tx),
-        "receipt": dict(receipt),
-        "trace": trace,
-        "summary": summary,
-        "gasProfiling": summary.get("gas_profiling"),
-        "stateDiffs": summary.get("state_diffs")
-    }
 
 
 @app.post("/api/tx_gas")
 def tx_gas(req: TxRequest):
     tx_hash = req.txHash
-
     receipt = get_receipt(tx_hash)
-
     cached = trace_cache.get(tx_hash)
     if cached is None:
         trace = trace_transaction(tx_hash)
         trace_cache.set(tx_hash, trace)
         cached = trace
+    return gas_profiling(receipt, cached["callTree"], cached["structLogs"])
 
-    summary = summarize_trace(cached, dict(receipt))
-
-    return {
-        "txHash": tx_hash,
-        "gasProfiling": summary.get("gas_profiling"),
-        "stateDiffs": summary.get("state_diffs")
-    }
+@app.post("/api/stat_diff")
+def stat_diff(req: TxRequest):
+    tx_hash = req.txHash
+    receipt = get_receipt(tx_hash)
+    cached = trace_cache.get(tx_hash)
+    if cached is None:
+        trace = trace_transaction(tx_hash)
+        trace_cache.set(tx_hash, trace)
+        cached = trace
+    return state_diffs(cached["callTree"], receipt, cached["stateDiff"])
