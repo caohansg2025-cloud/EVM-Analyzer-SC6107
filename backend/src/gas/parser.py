@@ -1,7 +1,7 @@
 from dataclasses import dataclass, field
 from typing import Any, List, Optional
 
-from api.abi import get_function_signature
+from src.api.abi import get_function_signature
 
 
 @dataclass

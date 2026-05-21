@@ -11,7 +11,6 @@ def state_diffs(call_tree, receipt, state_diff=None):
         "storageChanges": storage_changes
     }
 
-
 def _storage_changes_from_state_diff(state_diff):
     if not state_diff:
         return []
@@ -32,7 +31,6 @@ def _storage_changes_from_state_diff(state_diff):
                 "after": after
             })
     return changes
-
 
 def _balance_changes_from_state_diff(state_diff):
     if not state_diff:
@@ -55,7 +53,6 @@ def _balance_changes_from_state_diff(state_diff):
             "after": after
         })
     return changes
-
 
 def _diff_from_delta(delta):
     if not isinstance(delta, dict):
@@ -95,18 +92,6 @@ def _eth_balance_changes(call_tree):
             "deltaWei": str(delta)
         })
     return changes
-
-def _to_int(value):
-    """ 
-    Normalize value to integer 
-    """
-    if value is None: return 0
-    if isinstance(value, int): return value
-    if hasattr(value, "hex"): return int(value.hex(), 16)
-    if isinstance(value, str):
-        if value.startswith("0x"): return int(value, 16)
-        if value.isdigit(): return int(value)
-    return 0
 
 def _token_transfers_from_receipt(receipt):
     if not receipt: return []
@@ -260,3 +245,19 @@ def _decode_erc1155_batch(log):
         "to": to_addr,
         "batch": True
     }
+
+
+#--- general helpers -----------------------------------------------------------
+
+
+def _to_int(value):
+    """ 
+    Normalize value to integer 
+    """
+    if value is None: return 0
+    if isinstance(value, int): return value
+    if hasattr(value, "hex"): return int(value.hex(), 16)
+    if isinstance(value, str):
+        if value.startswith("0x"): return int(value, 16)
+        if value.isdigit(): return int(value)
+    return 0
