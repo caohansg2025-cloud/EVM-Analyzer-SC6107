@@ -31,11 +31,7 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
-<<<<<<< HEAD
-    "babel-plugin-react-compiler": "1.0.0",
-=======
     "@types/react-syntax-highlighter": "^15.5.13",
->>>>>>> 0f29c41ace239d7a724d8de2a47d4e96f5f0a858
     "eslint": "^9",
     "eslint-config-next": "16.2.6",
     "tailwindcss": "^4",
