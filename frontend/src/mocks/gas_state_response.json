@@ -1,0 +1,20 @@
+{
+  "txHash": "0x5c504ed432cb51138bcf09aa5e8a410dd4a1e204ef84bfed1be16dfba1b22026",
+  "gasProfiling": {
+    "totalGasUsed": 125000,
+    "breakdown": [
+      { "function": "swapExactETHForTokens", "gas": 15000, "percentage": 12 },
+      { "function": "WETH.deposit", "gas": 25000, "percentage": 20 },
+      { "function": "UniswapV3Pool.swap", "gas": 85000, "percentage": 68 }
+    ],
+    "optimizationSuggestions": "发现高开销的 DELEGATECALL 操作，建议检查存储插槽（Storage Slots）读取是否可进行多路批处理优化 [cite: 308, 422-423]。"
+  },
+  "stateDiffs": {
+    "balanceChanges": [
+      { "address": "0xda9dfa130df4de4673b89022ee50ff26f6ea73cf", "asset": "ETH", "before": "10.0", "after": "8.498" }
+    ],
+    "tokenTransfers": [
+      { "token": "USDC", "tokenAddress": "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48", "from": "0xUniswapV3Pool", "to": "0xda9dfa130df4de4673b89022ee50ff26f6ea73cf", "amount": "4500.00" }
+    ]
+  }
+}

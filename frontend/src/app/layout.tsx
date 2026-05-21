@@ -1,0 +1,63 @@
+/**
+ * Root layout — wraps every page.
+ *
+ * Design reference: docs/frontend-design.md §9.2
+ * Next.js App Router docs: app/layout.tsx convention.
+ *
+ * Responsibilities:
+ *   1. Set the `<html>` element with `dark` class so all shadcn dark-mode
+ *      tokens (defined in globals.css) take effect site-wide.
+ *   2. Load Geist + Geist Mono variable fonts (Vercel's default sans/mono
+ *      pairing — auto-self-hosted by `next/font/google`).
+ *   3. Mount the persistent <Header /> above every page.
+ *   4. Wrap page content in a constrained <main> for consistent gutters.
+ *
+ * Note: Geist's `--font-geist-sans` and `--font-geist-mono` CSS variables
+ * are consumed by globals.css `@theme inline` → Tailwind's `font-sans` and
+ * `font-mono` utilities.
+ */
+import type { Metadata } from "next";
+import { Geist, Geist_Mono } from "next/font/google";
+import "./globals.css";
+import { Header } from "@/components/header/Header";
+
+const geistSans = Geist({
+  variable: "--font-geist-sans",
+  subsets: ["latin"],
+});
+
+const geistMono = Geist_Mono({
+  variable: "--font-geist-mono",
+  subsets: ["latin"],
+});
+
+/**
+ * Page metadata — used by Next.js to populate <title> and <meta name="description">.
+ * The browser tab and any social-share preview pull from here.
+ */
+export const metadata: Metadata = {
+  title: "EVM Transaction Debugger & Analyzer",
+  description: "SC6107 Project 7 — analyze Ethereum transaction traces, gas, and security",
+};
+
+export default function RootLayout({
+  children,
+}: Readonly<{
+  children: React.ReactNode;
+}>) {
+  return (
+    <html
+      lang="en"
+      // `dark` is the trigger for the @custom-variant in globals.css.
+      // Geist variables flow into Tailwind via `--font-sans` / `--font-mono`.
+      className={`dark ${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+    >
+      <body className="min-h-full flex flex-col bg-background text-foreground">
+        <Header />
+        <main className="container mx-auto px-4 py-6 max-w-7xl flex-1">
+          {children}
+        </main>
+      </body>
+    </html>
+  );
+}
