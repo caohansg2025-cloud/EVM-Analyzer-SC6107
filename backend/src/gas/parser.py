@@ -1,7 +1,7 @@
 from dataclasses import dataclass, field
 from typing import Any, List, Optional
 
-from eth_utils import keccak
+from api.abi import get_function_signature
 
 
 @dataclass
@@ -50,6 +50,21 @@ class GasTreeNode:
         }
 
 
+#--- gas decomposition by func (aggr) ------------------------------------------
+
+
+# deprecated
+#
+# def gas_by_function(call_tree, exclusive=False):
+    
+#     if not call_tree: return []
+#     entries = {}
+#     _walk_call_tree(call_tree, entries, exclusive)
+#     result = list(entries.values())
+#     result.sort(key=lambda item: item["gas_used"], reverse=True)
+#     return result
+
+
 def gas_by_function(call_tree, exclusive=False):
     """ 
     Return gas used by function given the call tree (callTracer), 
@@ -57,18 +72,8 @@ def gas_by_function(call_tree, exclusive=False):
     notice that the function label will be the hash[:10], need to call selector 
     mapper to retrieve funciton name from abi.
     """
-    if not call_tree: return []
-    entries = {}
-    _walk_call_tree(call_tree, entries, exclusive)
-    result = list(entries.values())
-    result.sort(key=lambda item: item["gas_used"], reverse=True)
-    return result
-
-
-def gas_by_function_models(call_tree, exclusive=False):
     if not call_tree:
         return []
-
     entries = {}
     _walk_call_tree(call_tree, entries, exclusive)
     result = [
@@ -84,13 +89,12 @@ def gas_by_function_models(call_tree, exclusive=False):
     result.sort(key=lambda item: item.gas_used, reverse=True)
     return result
 
-
 def gas_by_function_json(call_tree, exclusive=False):
-    return [item.to_dict() for item in gas_by_function_models(call_tree, exclusive)]
+    return [item.to_dict() for item in gas_by_function(call_tree, exclusive)]
 
 def _walk_call_tree(call, entries, exclusive: bool):
     """
-    Traverse the call tree:
+    Traverse and parse the call tree:
 
     call is a dict from callTracer, shaped like:
     {
@@ -102,6 +106,9 @@ def _walk_call_tree(call, entries, exclusive: bool):
         "gasUsed": "0x..." or int,
         "calls": [child_call, ...]
     }
+
+    here, we will recursively decompose the the call tree, and fit them into the 
+    entries as a list
     """
     if not call: return
     to_addr = call.get("to")
@@ -123,11 +130,11 @@ def _walk_call_tree(call, entries, exclusive: bool):
     entries[key]["calls"] += 1
     entries[key]["gas_used"] += gas_used
     for child in call.get("calls", []) or []:
-        _walk_call_tree(child, entries)
-
+        _walk_call_tree(child, entries, exclusive)
 
 def _function_label(call):
     input_data = call.get("input")
+    to_addr = call.get("to")
     if not isinstance(input_data, str):
         return "unknown"
     data = input_data.lower()
@@ -136,25 +143,19 @@ def _function_label(call):
             return "receive"
         return "fallback"
     if data.startswith("0x") and len(data) >= 10:
-        return data[:10]
+        selector = data[:10]
+        signature = get_function_signature(to_addr, selector)
+        return signature or selector
     return "unknown"
 
 
-def gas_by_opcode(trace):
-    """ 
-    Return gas consumed by evm operation
-    """
-    gas_map = {}
-    struct_logs = trace.get("result", {}).get("structLogs", [])
-    for log in struct_logs:
-        op = log.get("op")
-        gas_cost = log.get("gasCost", 0)
-        gas_map[op] = gas_map.get(op, 0) + gas_cost
-    return gas_map
+#--- gas decomposition by func (tree) ------------------------------------------
 
 
 def gas_tree(call_tree):
-    """Return a call-trace-shaped tree annotated with gas usage."""
+    """
+    Return a call-trace-shaped tree annotated with gas usage.
+    """
     if not call_tree:
         return None
     return _build_gas_tree(call_tree)
@@ -229,22 +230,23 @@ def _build_gas_tree_node(call):
     )
 
 
-def build_selector_map(abi):
+#--- gas decomposition by opcode -----------------------------------------------
+
+
+def gas_by_opcode(struct_logs):
+    """ 
+    Return gas consumed by evm operation
     """
-    Build mapping:
-        0xa9059cbb -> transfer(address,uint256)
-    """
-    selectors = {}
-    for item in abi:
-        if item.get("type") != "function":
-            continue
-        name = item["name"]
-        inputs = ",".join(i["type"] for i in item.get("inputs", []))
-        signature = f"{name}({inputs})"
-        selector = keccak(text=signature)[:4].hex()
-        selector = "0x" + selector
-        selectors[selector] = signature
-    return selectors
+    gas_map = {}
+    for log in struct_logs:
+        op = log.get("op")
+        gas_cost = log.get("gasCost", 0)
+        gas_map[op] = gas_map.get(op, 0) + gas_cost
+    return gas_map
+
+
+
+#--- general helpers -----------------------------------------------------------
 
 
 def _to_int(value):

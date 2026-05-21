@@ -3,14 +3,14 @@ from collections import OrderedDict
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 # api
-from src.tx.dto import (
+from backend.src.api.dto import (
     TxRequest
 )
-from src.tx.api.tx import (
+from backend.src.api.tx import (
     get_transaction,
     get_receipt,
 )
-from src.tx.api.trace import (
+from backend.src.api.trace import (
     trace_transaction
 )
 # gas and state feature imports

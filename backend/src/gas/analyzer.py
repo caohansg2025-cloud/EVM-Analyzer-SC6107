@@ -3,29 +3,23 @@ from src.gas.parser import (
 )
 
 
-def gas_profiling(call_tree, receipt, opcode_gas):
+def gas_profiling(receipt, call_tree, struct_logs, opcode_gas):
     """ gas profile """
     total_gas = _to_int(receipt.get("gasUsed")) if receipt else 0
-    by_function = gas_by_function(call_tree)
-    breakdown = []
 
-    for entry in by_function:
-        percentage = 0
-        if total_gas > 0:
-            percentage = round((entry["gas_used"] / total_gas) * 100, 2)
-        breakdown.append({
-            "function": entry["function"],
-            "contract": entry["contract"],
-            "callType": entry["call_type"],
-            "gas": entry["gas_used"],
-            "percentage": percentage
-        })
-
+    by_function_aggr = gas_by_function(call_tree)
+    by_function_tree = gas_tree(call_tree)
+    
+    opcode_gas = gas_by_opcode(struct_logs)
     suggestion = _opcode_suggestion(opcode_gas)
 
     return {
         "totalGasUsed": total_gas,
-        "breakdown": breakdown,
+
+        "gasByFunctionAggrData": by_function_aggr,
+        "gasByFunctionTreeData": by_function_tree,
+
+        "opcodeGasConsumption": opcode_gas,
         "optimizationSuggestions": suggestion
     }
 
@@ -47,18 +41,3 @@ def _opcode_suggestion(opcode_gas):
     return """
            Top gas opcode is %s. Review its usage for optimization.
            """ % top_opcode
-
-
-def trace_gas_analyze(trace, receipt=None):
-    struct_logs = trace.get("result", {}).get("structLogs", [])
-    call_tree = trace.get("result", {}).get("callTree")
-    opcode_gas = gas_by_opcode(trace)
-    return {
-        "total_ops": len(struct_logs),
-        "gas_by_opcode": opcode_gas,
-        "gas_by_function": gas_by_function(call_tree),
-        "gas_profiling": gas_profiling(call_tree, receipt, opcode_gas),
-    }
-
-
-

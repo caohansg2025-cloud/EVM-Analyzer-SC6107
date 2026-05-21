@@ -4,7 +4,7 @@ from fastapi import HTTPException
 from web3 import Web3
 from dotenv import load_dotenv
 
-from tx.helper import norm_hash
+from backend.src.api.helper import norm_hash
 
 
 load_dotenv()
