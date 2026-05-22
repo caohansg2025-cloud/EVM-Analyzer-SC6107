@@ -2,3 +2,33 @@ node_modules/
 __pycache__/
 .env
 .DS_Store
+.vscode
+
+# Python / uv
+.venv/
+.pytest_cache/
+*.egg-info/
+
+# Next.js / frontend build artifacts (belt-and-suspenders;
+# frontend/.gitignore covers these too — but only if frontend/ is the
+# git root for that file. When you run git from the project root, these
+# top-level patterns kick in.)
+.next/
+frontend/.next/
+frontend/node_modules/
+frontend/out/
+frontend/.vercel/
+frontend/*.tsbuildinfo
+frontend/.env.local
+frontend/.env.*.local
+
+# Local-only working docs & agent configs
+jz-work-doc/
+AGENTS.md
+CLAUDE.md
+
+# Large local-only archives — never commit
+*.rar
+*.zip
+*.7z
+

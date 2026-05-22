@@ -1,0 +1,42 @@
+{
+  "contractAddress": "0x3333333333333333333333333333333333333333",
+  "contractName": "OverflowToken",
+  "scanStatus": "Completed",
+  "toolsUsed": [
+    "Slither v0.11.5"
+  ],
+  "vulnerabilities": [
+    {
+      "id": "ERR-001",
+      "type": "Arithmetic Precision Issue",
+      "severity": "High",
+      "line": 28,
+      "description": "OverflowToken.transfer(address,uint256) (test_contracts/OverflowToken.sol#24-32) compiles under Solidity 0.7.x without SafeMath. balances[msg.sender] -= amount can underflow when the sender balance is below `amount`, wrapping to a huge value.",
+      "codeSnippet": "balances[msg.sender] -= amount;\nbalances[to] += amount;"
+    },
+    {
+      "id": "ERR-002",
+      "type": "Arithmetic Precision Issue",
+      "severity": "High",
+      "line": 40,
+      "description": "OverflowToken.mint(address,uint256) (test_contracts/OverflowToken.sol#38-42) can overflow totalSupply when the cumulative mint amount exceeds 2**256 - 1.",
+      "codeSnippet": "totalSupply += amount;\nbalances[to] += amount;"
+    },
+    {
+      "id": "ERR-003",
+      "type": "Arithmetic Precision Issue",
+      "severity": "Medium",
+      "line": 51,
+      "description": "OverflowToken.approve(address,uint256) (test_contracts/OverflowToken.sol#48-53) allows allowance to be set without zeroing the previous value first - subject to the classic race-condition front-running.",
+      "codeSnippet": "allowance[msg.sender][spender] = amount;"
+    },
+    {
+      "id": "ERR-004",
+      "type": "Compiler Version",
+      "severity": "Informational",
+      "line": 2,
+      "description": "Outdated compiler ^0.7.6 lacks SafeMath built-in; consider migrating to >=0.8.0 for automatic overflow checks.",
+      "codeSnippet": "pragma solidity ^0.7.6;"
+    }
+  ]
+}

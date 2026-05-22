@@ -116,7 +116,7 @@ export function TxHashInput({
           {/* Manual tx hash entry with Load button. */}
           <div className="grid grid-cols-1 md:grid-cols-[1fr_auto] gap-2 items-start">
             <Input
-              placeholder="…or paste a tx hash: 0x... (64 hex chars)"
+              placeholder="...or paste a real mainnet tx hash from Etherscan (0x + 64 hex)"
               value={txDraft}
               onChange={(e) => {
                 setTxDraft(e.target.value);

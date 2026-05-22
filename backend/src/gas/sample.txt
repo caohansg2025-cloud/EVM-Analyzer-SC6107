@@ -1,0 +1,84 @@
+----------------------------- Struct log ---------------------------------------
+
+[
+  {
+    "pc": 0,
+    "op": "PUSH1",
+    "gas": 21000,
+    "gasCost": 3,
+    "depth": 1,
+    "stack": [],
+    "memory": []
+  },
+  {
+    "pc": 1,
+    "op": "PUSH1",
+    "gas": 20997,
+    "gasCost": 3,
+    "depth": 1,
+    "stack": ["0x60"],
+    "memory": []
+  },
+  {
+    "pc": 2,
+    "op": "MSTORE",
+    "gas": 20994,
+    "gasCost": 12,
+    "depth": 1,
+    "stack": ["0x60","0x40"],
+    "memory": ["0x0000..."]
+  },
+  {
+    "pc": 120,
+    "op": "CALL",
+    "gas": 18000,
+    "gasCost": 700,
+    "depth": 1,
+    "stack": ["..."],
+    "memory": ["..."]
+  },
+  {
+    "pc": 0,
+    "op": "PUSH1",
+    "gas": 17000,
+    "gasCost": 3,
+    "depth": 2
+  }
+]
+
+----------------------------- Call trace ---------------------------------------
+
+{
+  "type": "CALL",
+  "from": "0xUser",
+  "to": "0xRouter",
+  "gasUsed": "0x186a0",
+  "input": "0x38ed1739...",
+  "calls": [
+    {
+      "type": "CALL",
+      "from": "0xRouter",
+      "to": "0xToken",
+      "gasUsed": "0x5208",
+      "input": "0xa9059cbb...",
+      "calls": []
+    },
+    {
+      "type": "CALL",
+      "from": "0xRouter",
+      "to": "0xPair",
+      "gasUsed": "0x11170",
+      "input": "0x022c0d9f...",
+      "calls": [
+        {
+          "type": "DELEGATECALL",
+          "from": "0xPair",
+          "to": "0xLibrary",
+          "gasUsed": "0x2710",
+          "input": "0xabcdef12...",
+          "calls": []
+        }
+      ]
+    }
+  ]
+}
