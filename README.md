@@ -1,175 +1,394 @@
-# EVM Transaction Debugger & Analyzer (Option 7)
+<div align="center">
 
-## 目录结构说明
-请每位组员对号入座，严格在指定的文件夹内开发，避免产生代码合并冲突（Merge Conflicts）：
+# EVM Transaction Debugger & Analyzer
 
-* **`frontend/` (4号位 - 前端工程师)**
-    * **职责**：基于 React/Next.js 搭建 UI 界面与数据可视化看板。
-    * **注意**：在后端真实 API 完工前，请直接引入 `mock_data/` 中的 JSON 文件作为静态数据进行界面渲染与联调。
-* **`backend/` (1, 2, 3号位 - 后端与安全工程师)**
-    * **职责**：存放所有 Python/Node.js 数据解析与处理脚本。
-    * 1号位：负责交易追踪解析（Trace Tree 提取）。
-    * 2号位：负责 Gas 消耗统计与状态差异（State Diff）字典生成。
-    * 3号位：负责调用安全工具扫描逻辑。
-* **`mock_data/` (前后端交互)**
-    * **职责**：存放系统唯一的 **API 数据契约（Schema）**。
-    * 包含：`trace_response.json`（1号标准）、`gas_state_response.json`（2号标准）、`security_response.json`（3号标准）。
-    * **铁律**：后端脚本输出的 JSON 键名（Key）和层级必须与此目录下的文件 100% 一致。
-* **`test_contracts/` (3号位 - 安全工程师)**
-    * **职责**：存放用于安全漏洞扫描测试的智能合约（靶场案例，如包含 Reentrancy 等漏洞的合约）。
-* **`docs/` (5号位 - 架构师与交付经理)**
-    * **职责**：存放系统架构设计说明（`architecture.md`）、技术文档以及最终演示 PPT / 视频链接。
+**A lightweight, mock-first toolkit for inspecting Ethereum transactions end-to-end** —
+internal call trees, gas hotspots, state diffs, and Solidity vulnerabilities, all from a single tx hash.
+
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://www.python.org/)
+[![Node 20+](https://img.shields.io/badge/node-20%2B-339933.svg)](https://nodejs.org/)
+[![FastAPI](https://img.shields.io/badge/FastAPI-009688.svg?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
+[![Next.js](https://img.shields.io/badge/Next.js-000000.svg?logo=next.js&logoColor=white)](https://nextjs.org/)
+[![Slither](https://img.shields.io/badge/Slither-0.10%2B-8B0000.svg)](https://github.com/crytic/slither)
+[![Course: SC6107](https://img.shields.io/badge/NTU-SC6107-c8102e.svg)](#course-context)
+
+</div>
 
 ---
 
-##  Git 协作规则
-1.  **【禁止直推】** 任何情况下，**严禁**直接 `git push` 到 `main` 分支。`main` 分支已被锁死，仅用于最终交付。
-2.  **【分支隔离】** 每个人必须在自己的本地 Feature 分支干活，分支命名规范：
-    * 1号位：`feature/trace-api`
-    * 2号位：`feature/gas-profile`
-    * 3号位：`feature/security-scan`
-    * 4号位：`feature/frontend-ui`
-    * 5号位：`docs/architecture-ppt`
-3.  **【原子提交】** 保持 **每日 Commit** 的好习惯。每次提交的日志请语义化，例如：`feat: 增加 Trace 十六进制转十进制递归函数` 或 `fix: 修复饼图组件在零数据下的红屏 Bug`。
-4.  **【合并流程】** 本地开发测试无误后，将分支推送到 GitHub，并发起 **Pull Request (PR)**。由项目经理（5号位）进行 Code Review 后统一合并入主分支。
+## Table of Contents
+
+- [Overview](#overview)
+- [Features](#features)
+- [Architecture](#architecture)
+- [Project Structure](#project-structure)
+- [Quick Start](#quick-start)
+- [Configuration](#configuration)
+- [API Reference](#api-reference)
+- [Running Individual Modules](#running-individual-modules)
+- [Testing](#testing)
+- [Team Conventions](#team-conventions)
+- [Documentation](#documentation)
+- [Course Context](#course-context)
+- [License](#license)
 
 ---
 
-## How to Run
+## Overview
 
-### 环境前置
+The **EVM Transaction Debugger & Analyzer** turns a single Ethereum transaction hash into four orthogonal views — *what happened*, *what it cost*, *what changed on-chain*, and *what could go wrong* — and ships with a polished Next.js frontend on top.
 
-**Python 后端**
-- Python ≥ 3.10
-- [`uv`](https://docs.astral.sh/uv/) — 项目依赖管理器
-- 仓库根目录执行一次：
-  ```bash
-  uv sync
-  ```
-  这会在 `.venv/` 内安装 `pyproject.toml` 声明的所有依赖。
+It is built **mock-first**: every feature renders end-to-end from local JSON fixtures, so the full UI is demonstrable without an RPC key, a Slither binary, or network access. Flip a single environment switch and the same endpoints stream data from live RPC and a real Slither scan.
 
-**Node 前端**
-- Node ≥ 20
-- 进入 `frontend/` 执行一次：
-  ```bash
-  cd frontend && npm install
-  ```
-
-**环境变量**
-- 后端可选 `.env`（项目根或 `backend/`）：
-  - `USE_MOCK=true|false`（默认 `true`，读取 `mock_data/*.json`；设为 `false` 走真实 RPC）
-  - `ALCHEMY_RPC_URL=...`（`USE_MOCK=false` 时必填）
-- 前端 `frontend/.env.local`：
-  - `NEXT_PUBLIC_USE_MOCKS=false`（走后端 API，前端纯静态 mock 时改为 `true`）
-  - `NEXT_PUBLIC_API_BASE_URL=http://127.0.0.1:8000`
+> [!TIP]
+> Looking for a 2-minute sanity check? Run the [Quick Start](#quick-start) — the default `USE_MOCK=true` mode boots both servers with zero secrets.
 
 ---
 
-### 整体启动（前后端连通）
+## Features
 
-两个终端分别启动：
+| | Capability | What it does |
+| --- | --- | --- |
+| 🌳 | **Transaction Trace** | Renders the full call tree from `debug_traceTransaction`, decoded into `CALL` / `DELEGATECALL` / `STATICCALL` / `CREATE` nodes with selector-resolved function names. |
+| ⛽ | **Gas Profiling** | Aggregates total gas, per-function breakdown with percentages, and opcode-level optimization hints. |
+| 🔁 | **State Diff** | Surfaces ETH balance deltas and ERC-20 / 721 / 1155 transfers; storage slot diffs are extracted internally and ready for future UI exposure. |
+| 🛡️ | **Vulnerability Scan** | Drives Slither against project fixtures, maps detectors to project categories (Reentrancy, Unchecked Call, Access Control, …), and emits a stable `ERR-NNN` schema. |
+| 🧪 | **Mock-First** | A `mock_data/*.json` contract layer guarantees the frontend and backend stay schema-locked regardless of network state. |
+| 🧰 | **Compatibility Endpoints** | Legacy POST routes are preserved alongside the new GET API so older notebooks and demos keep working. |
+
+---
+
+## Architecture
+
+```mermaid
+flowchart LR
+    User["User / Presenter"] --> UI["Next.js Frontend"]
+    UI --> Hooks["SWR Hooks"]
+    Hooks --> APIClient["Typed API Client"]
+    APIClient --> Backend["FastAPI Unified Backend"]
+
+    Backend --> MockData["mock_data JSON Contracts"]
+    Backend --> RPC["Ethereum RPC Providers"]
+    Backend --> Slither["Slither Security Scanner"]
+
+    RPC --> Trace["debug_traceTransaction"]
+    RPC --> TxReceipt["Transaction / Receipt"]
+    Trace --> TraceModule["Trace Module"]
+    Trace --> GasModule["Gas Profiling Module"]
+    Trace --> StateModule["State Diff Module"]
+    TxReceipt --> GasModule
+    TxReceipt --> StateModule
+    Slither --> SecurityModule["Security Module"]
+
+    TraceModule --> Backend
+    GasModule --> Backend
+    StateModule --> Backend
+    SecurityModule --> Backend
+```
+
+| Layer | Where | Responsibility |
+| --- | --- | --- |
+| **Presentation** | `frontend/src/app`, `frontend/src/components` | Input form, three analysis tabs, charts and tables. |
+| **Frontend data** | `frontend/src/lib/api.ts`, `frontend/src/hooks` | SWR-cached, environment-switched client. |
+| **Backend API** | `backend/app/main.py` | Single FastAPI entry point; mock loader + RPC adapter. |
+| **Analysis services** | `backend/src/*`, `backend/security_scan.py` | Trace conversion, gas accounting, state diffs, Slither normalization. |
+| **Data contracts** | `mock_data/*.json`, `frontend/src/types/*.ts` | Single source of truth for response schemas. |
+
+Deeper design rationale lives in [`docs/architecture.md`](docs/architecture.md). API contracts and module ownership are in [`docs/technical-documentation.md`](docs/technical-documentation.md).
+
+---
+
+## Project Structure
+
+```text
+.
+├── backend/                    # FastAPI service & Python analysis modules
+│   ├── app/main.py             #   Unified entry point — routes, mock loader, RPC adapter
+│   ├── src/
+│   │   ├── api/                #   RPC clients: tx, receipt, debug_traceTransaction
+│   │   ├── gas/                #   Gas profiling (analyzer + parser)
+│   │   └── state/              #   State diff, balance, token-transfer extraction
+│   ├── security_scan.py        #   Slither driver + report normalizer (CLI-capable)
+│   └── tests/                  #   pytest contract tests
+├── frontend/                   # Next.js 14 + TypeScript + Tailwind + SWR + Recharts
+│   ├── src/app/                #   App-router pages
+│   ├── src/components/         #   UI: TraceTab, GasStateTab, SecurityTab, charts
+│   ├── src/hooks/              #   useTrace, useGasState, useSecurity (SWR)
+│   ├── src/lib/api.ts          #   Mock/real backend switch
+│   ├── src/types/              #   TypeScript mirrors of mock_data schemas
+│   └── src/mocks/              #   Browser-side mock JSON
+├── mock_data/                  # Authoritative response schemas (shared contracts)
+│   ├── trace_response.json
+│   ├── gas_state_response.json
+│   └── security_response.json
+├── test_contracts/             # Solidity fixtures for the security scanner
+│   ├── AccessControlBug.sol
+│   ├── OverflowToken.sol
+│   ├── UncheckedCall.sol
+│   └── VulnerableVault.sol
+├── docs/                       # Architecture, technical docs, security analysis
+│   ├── architecture.md
+│   ├── technical-documentation.md
+│   ├── security-analysis.md
+│   ├── gas-optimization.md
+│   └── proj.md
+├── scripts/                    # Helper scripts
+├── pyproject.toml              # uv-managed Python project
+└── README.md
+```
+
+---
+
+## Quick Start
+
+### Prerequisites
+
+| Tool | Version | Notes |
+| --- | --- | --- |
+| Python | ≥ 3.10 | required by the backend |
+| [`uv`](https://docs.astral.sh/uv/) | latest | Python dependency manager |
+| Node.js | ≥ 20 | required by the frontend |
+| npm | latest | bundled with Node |
+| `solc-select` *(optional)* | latest | only needed when running real Slither scans against the fixtures |
+
+### 1. Install dependencies
 
 ```bash
-# Terminal 1 — 后端 FastAPI（默认 mock 模式）
-uv run uvicorn backend.app.main:app --host 127.0.0.1 --port 8000 --reload
+# From repo root
+uv sync
 
-# Terminal 2 — 前端 Next.js
+# Frontend
+cd frontend && npm install && cd ..
+```
+
+`uv sync` materializes the `pyproject.toml` dependency set into `.venv/` and installs both runtime and dev (pytest, httpx) groups.
+
+### 2. Boot the full stack (mock mode, no secrets required)
+
+Two terminals:
+
+```bash
+# Terminal 1 — Backend (FastAPI, mock-first)
+uv run uvicorn backend.app.main:app --host 127.0.0.1 --port 8000 --reload
+```
+
+```bash
+# Terminal 2 — Frontend (Next.js dev server)
 cd frontend && npm run dev
 ```
 
-访问 [http://127.0.0.1:3000](http://127.0.0.1:3000) 即可。后端 Swagger 文档在 [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs)。
+| Service | URL |
+| --- | --- |
+| Frontend | <http://127.0.0.1:3000> |
+| Backend Swagger UI | <http://127.0.0.1:8000/docs> |
+| Backend ReDoc | <http://127.0.0.1:8000/redoc> |
 
-统一后端暴露三个接口供前端调用：
+> [!TIP]
+> If you change a frontend client component and the page doesn't update, clear `frontend/.next/` and restart `npm run dev` — Turbopack will occasionally cache stale chunks and cause hydration errors.
 
-| Method | Path | 说明 |
-| --- | --- | --- |
-| GET | `/api/trace/{txHash}` | 交易调用树 |
-| GET | `/api/gas-state/{txHash}` | Gas profiling + state diff（合并接口） |
-| GET | `/api/security/{address}` | Slither 漏洞扫描 |
+### 3. Flip to real on-chain mode (optional)
 
-> Tip：若改动了前端 client component 但页面没生效，可清掉 `frontend/.next/` 再重启 `npm run dev`，避免 turbopack 残留旧 chunk 导致 hydration 失败。
+Create `frontend/.env.local`:
+
+```env
+NEXT_PUBLIC_USE_MOCKS=false
+NEXT_PUBLIC_API_BASE_URL=http://127.0.0.1:8000
+```
+
+Create `.env` at the repository root (or under `backend/`):
+
+```env
+USE_MOCK=false
+ALCHEMY_RPC_URL=https://eth-mainnet.g.alchemy.com/v2/...
+QUICKNODE_RPC_URL=https://...quicknode.../        # must support the `debug` namespace
+```
+
+> [!IMPORTANT]
+> `debug_traceTransaction` requires a node with the `debug` namespace enabled. Public RPCs and most free Alchemy tiers will reject it — use QuickNode, an archive node, or a similar provider.
 
 ---
 
-### 单模块运行
+## Configuration
 
-#### Security Scan
+### Backend
 
-模块详细文档：[`docs/security-analysis.md`](docs/security-analysis.md)
+| Variable | Default | Purpose |
+| --- | --- | --- |
+| `USE_MOCK` | `true` | When `true`, the backend reads from `mock_data/*.json` and never touches the network. |
+| `ALCHEMY_RPC_URL` | — | Used by `backend/src/api/tx.py` for `eth_getTransactionByHash` and receipt lookups. |
+| `QUICKNODE_RPC_URL` | — | Used by `backend/src/api/trace.py` for `debug_traceTransaction`. |
 
-首次配置（安装合约对应的 `solc` 版本）：
+### Frontend
+
+| Variable | Default | Purpose |
+| --- | --- | --- |
+| `NEXT_PUBLIC_USE_MOCKS` | *enabled* | Set to `"false"` to fetch from the FastAPI backend instead of local JSON. |
+| `NEXT_PUBLIC_API_BASE_URL` | `""` | Backend base URL, e.g. `http://127.0.0.1:8000`. |
+
+---
+
+## API Reference
+
+The unified backend exposes three primary `GET` endpoints. Each one mirrors a JSON schema under `mock_data/`.
+
+| Method | Path | Input | Schema | Source of truth |
+| --- | --- | --- | --- | --- |
+| `GET` | `/api/trace/{tx_hash}` | Transaction hash | `TraceResponse` | [`mock_data/trace_response.json`](mock_data/trace_response.json) |
+| `GET` | `/api/gas-state/{tx_hash}` | Transaction hash | `GasStateResponse` | [`mock_data/gas_state_response.json`](mock_data/gas_state_response.json) |
+| `GET` | `/api/security/{address}` | Contract address | `SecurityResponse` | [`mock_data/security_response.json`](mock_data/security_response.json) |
+
+Three compatibility `POST` routes are kept for older clients:
+
+| Method | Path | Body |
+| --- | --- | --- |
+| `POST` | `/api/trace` | `{ "txHash": "0x..." }` |
+| `POST` | `/api/tx_gas` | `{ "txHash": "0x..." }` |
+| `POST` | `/api/stat_diff` | `{ "txHash": "0x..." }` |
+
+> [!NOTE]
+> Schema evolution rule of thumb: **update `mock_data/` first**, then the frontend type in `frontend/src/types/`, then the backend response builder in `backend/app/main.py`.
+
+---
+
+## Running Individual Modules
+
+### Security Scan
+
+Module deep-dive: [`docs/security-analysis.md`](docs/security-analysis.md).
 
 ```bash
+# First-time setup — install the Solidity versions used by the fixtures
 uv run solc-select install 0.8.20
 uv run solc-select install 0.7.6
 ```
 
-扫描器会根据合约的 `pragma solidity` 自动切换到对应版本，无需手动 `solc-select use`。
-
-运行扫描（输出 JSON 到 stdout）：
+The scanner reads each contract's `pragma solidity` and auto-switches via `solc-select`; manual `solc-select use` is not required.
 
 ```bash
+# Single file
 uv run python backend/security_scan.py test_contracts/VulnerableVault.sol --pretty
-```
 
-常用选项：
+# With an output file
+uv run python backend/security_scan.py test_contracts/VulnerableVault.sol --pretty \
+  --output out/security.json
 
-| 命令 | 作用 |
-| --- | --- |
-| `--pretty` | 缩进美化 JSON。 |
-| `--output PATH` | 同时把 JSON 写入文件。 |
-| `--solc-version X.Y.Z` | 强制指定 solc 版本（覆盖 pragma 自动检测）。 |
+# Force a specific compiler version
+uv run python backend/security_scan.py test_contracts/UncheckedCall.sol --pretty \
+  --solc-version 0.8.20
 
-批量扫描全部 fixture：
-
-```bash
+# Scan every fixture
 for f in test_contracts/*.sol; do
   echo "=== $f ==="
   uv run python backend/security_scan.py "$f" --pretty
 done
 ```
 
-退出码：`0` 成功（含 `CompletedWithNoFindings`）；`1` 扫描失败（JSON 中带 `error` 字段）；`2` 命令行误用。
+Exit codes:
 
-#### Trace API
+| Code | Meaning |
+| --- | --- |
+| `0` | Scan succeeded (including `CompletedWithNoFindings`). |
+| `1` | Scan failed; the JSON payload includes an `error` field. |
+| `2` | CLI misuse. |
 
-独立运行（旧版单模块入口，便于单测 trace 链路）：
+### Trace API (standalone)
+
+A legacy single-module entry point is preserved for unit-testing the trace pipeline in isolation:
 
 ```bash
 uv run uvicorn backend.trace_api:app --host 127.0.0.1 --port 8000 --reload
 ```
 
-接口：`POST /api/trace`，body `{ "txHash": "0x..." }`。受 `USE_MOCK` 控制走 mock 或真实 RPC。
+Route: `POST /api/trace`, body `{ "txHash": "0x..." }`. Honors `USE_MOCK`.
 
-#### Gas Profile / State Diff
+### Gas Profiling / State Diff
 
-Gas 与 State Diff 已并入统一后端（见上方整体启动）。如需单独跑解析器：
+Both are part of the unified backend — see the [Quick Start](#quick-start). To poke the analyzer directly:
 
 ```bash
 uv run python -c "from backend.src.gas.analyzer import gas_profiling; print(gas_profiling.__doc__)"
 ```
 
-测试数据见 `mock_data/gas_state_response.json`。
+Fixture data: [`mock_data/gas_state_response.json`](mock_data/gas_state_response.json).
 
-#### Frontend UI
+### Frontend
 
 ```bash
 cd frontend
-npm run dev      # 开发模式 http://127.0.0.1:3000
-npm run build    # 生产构建
-npm run start    # 起生产服务
-npm run lint
+npm run dev      # Dev server on http://127.0.0.1:3000
+npm run build    # Production build
+npm run start    # Serve the production build
+npm run lint     # ESLint
 ```
 
-将 `frontend/.env.local` 中的 `NEXT_PUBLIC_USE_MOCKS` 设为 `true` 可脱离后端，仅用 `frontend/src/mocks/*.json` 渲染整套界面。
+Set `NEXT_PUBLIC_USE_MOCKS=true` in `frontend/.env.local` to render the full UI without a backend, using `frontend/src/mocks/*.json`.
 
 ---
 
-### 单元测试
+## Testing
 
 ```bash
 uv run pytest
 ```
 
-`backend/tests/` 下覆盖 Trace API 的契约测试，运行前确保已执行 `uv sync`（含 dev 组依赖 `pytest`、`httpx`）。
+Tests live in `backend/tests/` and currently cover:
 
+- Trace endpoint returns `200` in mock mode.
+- Tx-hash leading/trailing whitespace is trimmed.
+- Invalid routes return `404`.
+- Security-scan schema and scan logic invariants.
+
+> [!TIP]
+> Before merging a feature branch, the recommended pre-flight is `uv run pytest` + `cd frontend && npm run lint && npm run build`.
+
+---
+
+## Team Conventions
+
+This is a five-role NTU SC6107 group project. Folder ownership is strict to minimise merge conflicts:
+
+| Role | Owner of | Branch convention |
+| --- | --- | --- |
+| **Role 1** | `backend/src/api/trace.py` — trace extraction | `feature/trace-api` |
+| **Role 2** | `backend/src/gas/`, `backend/src/state/` — gas + state diff | `feature/gas-profile` |
+| **Role 3** | `backend/security_scan.py`, `test_contracts/` — security | `feature/security-scan` |
+| **Role 4** | `frontend/` — UI & visualisation | `feature/frontend-ui` |
+| **Role 5** | `docs/`, system architecture, final delivery | `docs/architecture-ppt` |
+
+Ground rules:
+
+1. **Never push directly to `main`.** It is protected — every change ships through a Pull Request.
+2. **Branch per task.** Use the conventions above; one logical change per branch.
+3. **Atomic, semantic commits.** Prefer conventional-commit style: `feat:`, `fix:`, `docs:`, `chore:`, `refactor:`, `test:`.
+4. **PR → review → merge.** Role 5 owns final review and integration into `main`.
+
+---
+
+## Documentation
+
+| Doc | What's inside |
+| --- | --- |
+| [`docs/architecture.md`](docs/architecture.md) | System architecture, module boundaries, data flow, deployment view. |
+| [`docs/technical-documentation.md`](docs/technical-documentation.md) | Runtime manual, API contracts, module maintenance, testing notes. |
+| [`docs/security-analysis.md`](docs/security-analysis.md) | Security scanner internals and detector mapping. |
+| [`docs/gas-optimization.md`](docs/gas-optimization.md) | Gas profiling heuristics and optimization suggestions. |
+| [`docs/proj.md`](docs/proj.md) | Project planning notes. |
+
+---
+
+## Course Context
+
+This project is the **Option 7** submission for **NTU SC6107 — Blockchain Security**. It is intentionally scoped for a course deliverable:
+
+- The security endpoint maps fixed addresses to local Solidity fixtures rather than fetching verified source from Etherscan.
+- CORS is wide open (`allow_origins=["*"]`) — fine for the classroom demo, not for production.
+- Mock mode is the canonical demo path; real mode is included to show feasibility.
+
+Roadmap candidates beyond the course scope live at the bottom of [`docs/architecture.md`](docs/architecture.md#9-current-limitations--future-extensions).
+
+---
+
+## License
+
+Released under the [MIT License](LICENSE) — © 2026 caohansg2025-cloud.
