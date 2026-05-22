@@ -1,17 +1,17 @@
-# EVM Transaction Debugger & Analyzer 技术文档
+# EVM Transaction Debugger & Analyzer — Technical Documentation
 
-## 1. 项目概览
+## 1. Project Overview
 
-本项目是一个面向 Ethereum 交易的调试与分析工具，核心能力包括：
+This project is a debugger and analyzer for Ethereum transactions. Its core capabilities are:
 
-- Transaction Trace Analysis: 将交易内部调用转换为可视化调用树。
-- Gas Profiling: 汇总总 gas、函数级 gas 占比和 opcode 级优化建议。
-- State Diff Visualization: 展示 ETH 余额变化和 token transfer。
-- Vulnerability Detection: 使用 Slither 扫描 Solidity fixture 并输出标准化漏洞报告。
+- Transaction Trace Analysis: turn internal calls inside a transaction into a visualized call tree.
+- Gas Profiling: aggregate total gas, per-function gas share, and opcode-level optimization suggestions.
+- State Diff Visualization: surface ETH balance changes and token transfers.
+- Vulnerability Detection: scan Solidity fixtures with Slither and output a normalized vulnerability report.
 
-项目采用前后端分离：
+The project uses a decoupled frontend / backend layout:
 
-| 部分 | 技术栈 | 目录 |
+| Part | Tech stack | Directory |
 | --- | --- | --- |
 | Frontend | Next.js, React, TypeScript, Tailwind CSS, SWR, Recharts | `frontend/` |
 | Backend | Python, FastAPI, uvicorn, Slither, solc-select | `backend/` |
@@ -19,18 +19,18 @@
 | Shared schema | JSON | `mock_data/` |
 | Documentation | Markdown | `docs/` |
 
-## 2. 快速启动
+## 2. Quick Start
 
-### 2.1 后端
+### 2.1 Backend
 
 ```bash
 uv sync
 uv run uvicorn backend.app.main:app --host 127.0.0.1 --port 8000 --reload
 ```
 
-默认 `USE_MOCK=true`，后端会读取 `mock_data/*.json`，不依赖 RPC key。
+`USE_MOCK=true` by default, so the backend reads `mock_data/*.json` and does not require an RPC key.
 
-### 2.2 前端
+### 2.2 Frontend
 
 ```bash
 cd frontend
@@ -38,21 +38,21 @@ npm install
 npm run dev
 ```
 
-访问：
+URLs:
 
 - Frontend: `http://127.0.0.1:3000`
 - Backend Swagger: `http://127.0.0.1:8000/docs`
 
-### 2.3 连接真实后端
+### 2.3 Connecting to the Real Backend
 
-前端 `frontend/.env.local`:
+Frontend `frontend/.env.local`:
 
 ```env
 NEXT_PUBLIC_USE_MOCKS=false
 NEXT_PUBLIC_API_BASE_URL=http://127.0.0.1:8000
 ```
 
-后端 `.env` 可放在仓库根目录或 `backend/`：
+The backend `.env` can live at the repository root or in `backend/`:
 
 ```env
 USE_MOCK=false
@@ -60,13 +60,13 @@ ALCHEMY_RPC_URL=https://...
 QUICKNODE_RPC_URL=https://...
 ```
 
-说明：
+Notes:
 
-- `ALCHEMY_RPC_URL` 用于 `eth_getTransactionByHash` 和 receipt 查询。
-- `QUICKNODE_RPC_URL` 用于 `debug_traceTransaction`。该 RPC 必须支持 debug namespace。
-- 若只做课堂演示，保持 mock 模式即可。
+- `ALCHEMY_RPC_URL` is used for `eth_getTransactionByHash` and receipt lookups.
+- `QUICKNODE_RPC_URL` is used for `debug_traceTransaction`. This RPC must support the debug namespace.
+- For classroom demos, staying in mock mode is sufficient.
 
-## 3. API 契约
+## 3. API Contracts
 
 ### 3.1 Trace API
 
@@ -97,7 +97,7 @@ Response:
 }
 ```
 
-契约来源：
+Contract sources:
 
 - Mock: `mock_data/trace_response.json`
 - Frontend type: `frontend/src/types/trace.ts`
@@ -149,7 +149,7 @@ Response:
 }
 ```
 
-契约来源：
+Contract sources:
 
 - Mock: `mock_data/gas_state_response.json`
 - Frontend type: `frontend/src/types/gasState.ts`
@@ -184,94 +184,94 @@ Response:
 }
 ```
 
-契约来源：
+Contract sources:
 
 - Mock: `mock_data/security_response.json`
 - Frontend type: `frontend/src/types/security.ts`
 - Backend endpoint: `backend/app/main.py::get_security_scan`
 - Scanner: `backend/security_scan.py`
 
-注意：后端还可能返回 `scanStatus: "CompletedWithNoFindings"`，当前前端类型中尚未列入该状态。若后续要展示无发现结果，建议同步更新 `frontend/src/types/security.ts`。
+Note: the backend may also return `scanStatus: "CompletedWithNoFindings"`, which is not yet listed in the current frontend type. If we later need to render the no-findings case, also update `frontend/src/types/security.ts` to keep them in sync.
 
-## 4. 模块维护说明
+## 4. Module Maintenance Notes
 
 ### 4.1 Frontend
 
-关键路径：
+Key paths:
 
-| 文件 | 作用 |
+| File | Role |
 | --- | --- |
-| `frontend/src/app/page.tsx` | 主页面，组合输入区和三类分析 tab。 |
-| `frontend/src/lib/api.ts` | mock/real backend 切换逻辑。 |
-| `frontend/src/hooks/useTrace.ts` | Trace 数据请求与 SWR 缓存。 |
-| `frontend/src/hooks/useGasState.ts` | Gas + State 数据请求与 SWR 缓存。 |
-| `frontend/src/hooks/useSecurity.ts` | Security 数据请求与 SWR 缓存。 |
-| `frontend/src/types/*.ts` | 与 `mock_data` 对齐的 TypeScript 契约。 |
+| `frontend/src/app/page.tsx` | Main page; composes the input area and the three analysis tabs. |
+| `frontend/src/lib/api.ts` | Mock / real-backend switching logic. |
+| `frontend/src/hooks/useTrace.ts` | Trace data fetching and SWR caching. |
+| `frontend/src/hooks/useGasState.ts` | Gas + state data fetching and SWR caching. |
+| `frontend/src/hooks/useSecurity.ts` | Security data fetching and SWR caching. |
+| `frontend/src/types/*.ts` | TypeScript contracts aligned with `mock_data`. |
 
-修改 API 字段时的推荐顺序：
+Recommended order of changes when modifying API fields:
 
-1. 修改 `mock_data/*.json`。
-2. 修改 `frontend/src/types/*.ts`。
-3. 修改 `backend/app/main.py` 中对应响应转换。
-4. 启动前端并检查三个 tab 是否仍可渲染。
+1. Update `mock_data/*.json`.
+2. Update `frontend/src/types/*.ts`.
+3. Update the corresponding response conversion in `backend/app/main.py`.
+4. Start the frontend and verify that the three tabs still render correctly.
 
 ### 4.2 Backend
 
-关键路径：
+Key paths:
 
-| 文件 | 作用 |
+| File | Role |
 | --- | --- |
-| `backend/app/main.py` | FastAPI 统一入口、mock loader、响应转换和兼容接口。 |
-| `backend/src/api/tx.py` | 交易和 receipt 查询。 |
-| `backend/src/api/trace.py` | `debug_traceTransaction` 调用。 |
-| `backend/src/gas/analyzer.py` | gas profiling 入口。 |
-| `backend/src/gas/parser.py` | call tree 遍历、函数 gas 聚合、opcode gas 汇总。 |
-| `backend/src/state/analyzer.py` | state diff、ETH balance 和 token transfer 提取。 |
-| `backend/security_scan.py` | Slither 扫描、detector 映射和安全报告标准化。 |
+| `backend/app/main.py` | Unified FastAPI entry point, mock loader, response conversion, and compatibility endpoints. |
+| `backend/src/api/tx.py` | Transaction and receipt lookups. |
+| `backend/src/api/trace.py` | `debug_traceTransaction` calls. |
+| `backend/src/gas/analyzer.py` | Gas profiling entry point. |
+| `backend/src/gas/parser.py` | Call-tree traversal, per-function gas aggregation, opcode gas roll-up. |
+| `backend/src/state/analyzer.py` | State diff, ETH balance, and token-transfer extraction. |
+| `backend/security_scan.py` | Slither scanning, detector mapping, and security-report normalization. |
 
-后端真实模式依赖：
+Backend real-mode dependencies:
 
-- RPC endpoint 支持 transaction、receipt、debug trace。
-- Slither 可执行文件在 `uv run` 环境中可用。
-- `solc-select` 已安装对应 Solidity compiler 版本。
+- An RPC endpoint supporting transaction, receipt, and debug trace.
+- A Slither executable available inside the `uv run` environment.
+- `solc-select` with the matching Solidity compiler version installed.
 
 ### 4.3 Security Scanner
 
-单文件扫描：
+Single-file scan:
 
 ```bash
 uv run python backend/security_scan.py test_contracts/VulnerableVault.sol --pretty
 ```
 
-指定输出文件：
+Specify an output file:
 
 ```bash
 uv run python backend/security_scan.py test_contracts/VulnerableVault.sol --pretty --output out/security.json
 ```
 
-安装 compiler 示例：
+Install compilers (example):
 
 ```bash
 uv run solc-select install 0.8.20
 uv run solc-select install 0.7.6
 ```
 
-## 5. 测试与质量检查
+## 5. Testing & Quality Checks
 
-### 5.1 后端测试
+### 5.1 Backend Tests
 
 ```bash
 uv run pytest
 ```
 
-现有测试位于 `backend/tests/`，主要覆盖：
+The existing tests live in `backend/tests/` and mainly cover:
 
-- mock 模式下 trace endpoint 返回 200。
-- tx hash 首尾空格清理。
-- 非法路径返回 404。
-- security scan 的 schema 和扫描逻辑。
+- The trace endpoint returns 200 in mock mode.
+- Leading / trailing whitespace in tx hashes is stripped.
+- Invalid paths return 404.
+- The security-scan schema and scan logic.
 
-### 5.2 前端检查
+### 5.2 Frontend Checks
 
 ```bash
 cd frontend
@@ -279,49 +279,49 @@ npm run lint
 npm run build
 ```
 
-建议在合并前至少执行：
+Before merging, run at minimum:
 
 - `uv run pytest`
 - `npm run lint`
 - `npm run build`
 
-若本地缺少 Node/Python 依赖，应先执行 `uv sync` 和 `npm install`。
+If Node or Python dependencies are missing locally, first run `uv sync` and `npm install`.
 
-## 6. Demo 流程建议
+## 6. Demo Flow Suggestions
 
-稳定演示推荐使用 mock 模式：
+For a stable demo, use mock mode:
 
-1. 启动后端或直接让前端使用本地 mocks。
-2. 打开首页，保持默认 sample transaction。
-3. 展示 Trace tab，说明 call tree 如何反映内部合约调用。
-4. 切换 Gas & State tab，说明 gas breakdown、优化建议、balance change 和 token transfer。
-5. 切换 Security tab，说明 Slither 输出如何被标准化为漏洞卡片。
-6. 最后说明真实模式需要 RPC key、debug trace 支持和 Slither/solc 环境。
+1. Start the backend, or just let the frontend use local mocks.
+2. Open the home page and keep the default sample transaction.
+3. Show the Trace tab and explain how the call tree reflects internal contract calls.
+4. Switch to the Gas & State tab and walk through the gas breakdown, optimization suggestions, balance changes, and token transfers.
+5. Switch to the Security tab and explain how Slither output is normalized into vulnerability cards.
+6. Finally, explain that real mode requires an RPC key, debug-trace support, and a Slither / solc environment.
 
-答辩中建议强调：`mock_data` 是团队协作的 API contract，减少了前后端并行开发期间的 schema drift。
+During the defense, emphasize that `mock_data` is the team's API contract — it reduces schema drift while frontend and backend work in parallel.
 
-## 7. 已知风险与改进项
+## 7. Known Risks & Improvement Items
 
-| 风险 / 缺口 | 影响 | 建议 |
+| Risk / gap | Impact | Suggestion |
 | --- | --- | --- |
-| RPC provider 不支持 `debug_traceTransaction` | 真实 trace/gas/state 无法生成 | 使用支持 debug namespace 的节点或服务。 |
-| Security endpoint 依赖本地 fixture 映射 | 无法扫描任意真实合约地址 | 增加 Etherscan verified source fetch。 |
-| CORS 当前放开所有来源 | 生产环境安全边界不足 | 部署时限制 allowed origins。 |
-| 前端 security type 未包含 `CompletedWithNoFindings` | 真实无漏洞结果可能产生类型不一致 | 更新 `ScanStatus` union。 |
-| Storage diff 尚未前端展示 | 状态变化分析不完整 | 新增 storage changes table 或 slot decoder。 |
+| RPC provider doesn't support `debug_traceTransaction` | Real trace / gas / state cannot be produced | Use a node or service that supports the debug namespace. |
+| Security endpoint depends on the local fixture mapping | Cannot scan arbitrary real contract addresses | Add Etherscan verified-source fetching. |
+| CORS currently allows all origins | Insufficient security boundary in production | Restrict allowed origins on deployment. |
+| Frontend security type omits `CompletedWithNoFindings` | Real no-findings results may cause type mismatches | Update the `ScanStatus` union. |
+| Storage diff is not yet shown in the frontend | Incomplete state-change analysis | Add a storage-changes table or a slot decoder. |
 
-## 8. 分支与协作规范
+## 8. Branching & Collaboration Conventions
 
-本次五号位文档工作使用分支：
+This Role-5 documentation work uses the branch:
 
 ```bash
 docs/architecture-ppt
 ```
 
-推荐提交范围只包含：
+Recommended commit scope is limited to:
 
 - `docs/architecture.md`
 - `docs/technical-documentation.md`
-- 后续 PPT、demo script 或交付说明文件
+- Follow-up slide deck, demo script, or delivery notes.
 
-避免在文档分支中修改前端/后端业务代码，以减少与 1-4 号位的合并冲突。
+Avoid modifying frontend / backend business code on the docs branch to reduce merge conflicts with members 1–4.
