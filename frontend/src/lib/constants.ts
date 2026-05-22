@@ -3,14 +3,15 @@
  *
  * Design reference: docs/frontend-design.md §6.4
  *
- * SAMPLE_TXS feeds the dropdown in TxHashInput (Commit 14). Currently has
- * only one entry — matching the single tx hash that appears in our locked
- * mocks. On Day 4 we coordinate with the Backend Integration Engineer to
- * extend this list with 4 more real testnet hashes that the backend can
- * actually trace.
+ * SAMPLE_TXS feeds the dropdown in TxHashInput. Each entry's `txHash`
+ * is sent verbatim to `GET /api/trace/:txHash` and `GET /api/gas-state/:txHash`.
  *
  * SAMPLE_CONTRACTS feeds the contract-address picker on the Security tab.
- * Its single entry matches the contract address in security_response.json.
+ * Addresses are aligned with backend/app/main.py ADDRESS_TO_CONTRACT (the
+ * live-Slither routing). In backend mock mode the security endpoint serves
+ * the same VulnerableVault payload for all four, so the dropdown variety
+ * comes from a frontend-side per-address override in src/lib/api.ts.
+ * See docs/security-mock-architecture.md for the rationale.
  */
 
 export interface SampleTx {
@@ -19,7 +20,7 @@ export interface SampleTx {
   description: string;
 }
 
-/** Pinned demo transactions — kept in sync with src/mocks/trace_response.json. */
+/** Pinned demo transactions — kept in sync with mock_data/trace_response.json. */
 export const SAMPLE_TXS: SampleTx[] = [
   {
     label: "Uniswap V2 Swap",
@@ -28,10 +29,27 @@ export const SAMPLE_TXS: SampleTx[] = [
   },
 ];
 
-/** Pinned demo contracts — kept in sync with src/mocks/security_response.json. */
+/**
+ * Demo contracts — addresses MUST match backend/app/main.py ADDRESS_TO_CONTRACT.
+ * Each one has its own frontend mock in src/mocks/ so the dropdown shows
+ * DISTINCT findings per pick even though the backend's mock endpoint returns
+ * the same VulnerableVault payload regardless of address.
+ */
 export const SAMPLE_CONTRACTS: { label: string; address: string }[] = [
   {
-    label: "VulnerableVault (Reentrancy demo)",
+    label: "VulnerableVault — Reentrancy demo",
     address: "0x7a250d5630b4cf539739df2c5dacb4c659f2488d",
+  },
+  {
+    label: "AccessControlBug — onlyOwner missing",
+    address: "0x1111111111111111111111111111111111111111",
+  },
+  {
+    label: "UncheckedCall — low-level call result ignored",
+    address: "0x2222222222222222222222222222222222222222",
+  },
+  {
+    label: "OverflowToken — integer overflow",
+    address: "0x3333333333333333333333333333333333333333",
   },
 ];

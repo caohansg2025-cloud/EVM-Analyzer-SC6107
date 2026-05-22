@@ -1,0 +1,40 @@
+{
+  "contractAddress": "0x2222222222222222222222222222222222222222",
+  "contractName": "UncheckedCall",
+  "scanStatus": "Completed",
+  "toolsUsed": ["Slither v0.11.5"],
+  "vulnerabilities": [
+    {
+      "id": "ERR-001",
+      "type": "Unchecked External Call",
+      "severity": "High",
+      "line": 14,
+      "description": "UncheckedCall.forward(address,bytes) (test_contracts/UncheckedCall.sol#12-17) ignores the return value of a low-level call. Silent failures can leave the contract in an inconsistent state.",
+      "codeSnippet": "target.call(data);"
+    },
+    {
+      "id": "ERR-002",
+      "type": "Unchecked External Call",
+      "severity": "Medium",
+      "line": 22,
+      "description": "UncheckedCall.refund(address,uint256) (test_contracts/UncheckedCall.sol#19-24) uses send() without verifying the success boolean. If send fails the refund is silently lost.",
+      "codeSnippet": "payable(to).send(amount);"
+    },
+    {
+      "id": "ERR-003",
+      "type": "Block Timestamp Dependence",
+      "severity": "Low",
+      "line": 30,
+      "description": "UncheckedCall.deadline() (test_contracts/UncheckedCall.sol#28-32) uses block.timestamp as a comparison; miners can manipulate the value by ~15 seconds.",
+      "codeSnippet": "require(block.timestamp <= expiry, \"expired\");"
+    },
+    {
+      "id": "ERR-004",
+      "type": "Compiler Version",
+      "severity": "Informational",
+      "line": 2,
+      "description": "Outdated compiler ^0.7.6 lacks built-in overflow protection; consider migrating to >=0.8.0.",
+      "codeSnippet": "pragma solidity ^0.7.6;"
+    }
+  ]
+}
