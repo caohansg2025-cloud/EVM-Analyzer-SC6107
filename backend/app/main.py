@@ -135,11 +135,16 @@ def convert_call_tree_to_trace_tree(call):
         value_str = "0 ETH"
     gas_used = _to_int(call.get("gasUsed"))
     func_name = _function_label(call)
+    
+    # ch：增加提取底层日志数据功能
+    logs = call.get("logs", [])
+    
     children = []
     for child in call.get("calls", []) or []:
         child_converted = convert_call_tree_to_trace_tree(child)
         if child_converted:
             children.append(child_converted)
+            
     return {
         "type": call.get("type", "CALL"),
         "from": call.get("from"),
@@ -147,6 +152,7 @@ def convert_call_tree_to_trace_tree(call):
         "value": value_str,
         "gasUsed": gas_used,
         "functionName": func_name,
+        "logs": logs,  
         "calls": children
     }
 
@@ -355,3 +361,19 @@ def stat_diff_post(req: TxRequest):
         return state_diffs(trace.get("callTree"), receipt, trace.get("stateDiff"))
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+# 系统监控
+@app.get("/api/system/health")
+def get_system_health():
+    """系统健康度与LRU 缓存命中"""
+    return {
+        "status": "Running",
+        "engineMode": "Mock (Local Data)" if USE_MOCK else "Production (Real RPC)",
+        "cacheMetrics": {
+            "capacity": trace_cache.capacity,
+            "currentUsage": len(trace_cache._store),
+            "utilizationRate": f"{(len(trace_cache._store) / trace_cache.capacity) * 100:.2f}%"
+        },
+        "supportedTokens": list(KNOWN_CONTRACTS.values()),
+        "vulnerabilityContractsMapped": len(ADDRESS_TO_CONTRACT)
+    }
