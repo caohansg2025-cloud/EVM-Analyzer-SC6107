@@ -1,0 +1,40 @@
+{
+  "contractAddress": "0x1111111111111111111111111111111111111111",
+  "contractName": "AccessControlBug",
+  "scanStatus": "Completed",
+  "toolsUsed": ["Slither v0.11.5"],
+  "vulnerabilities": [
+    {
+      "id": "ERR-001",
+      "type": "Access Control Issue",
+      "severity": "High",
+      "line": 18,
+      "description": "AccessControlBug.withdrawAll() (test_contracts/AccessControlBug.sol#15-20) transfers ether to msg.sender without any access control. Any caller can drain the contract balance in a single transaction.",
+      "codeSnippet": "function withdrawAll() external {\n    payable(msg.sender).transfer(address(this).balance);\n}"
+    },
+    {
+      "id": "ERR-002",
+      "type": "Access Control Issue",
+      "severity": "High",
+      "line": 25,
+      "description": "AccessControlBug.setOwner(address) (test_contracts/AccessControlBug.sol#23-26) lacks an onlyOwner modifier. Anyone can take over ownership of the contract.",
+      "codeSnippet": "function setOwner(address newOwner) external {\n    owner = newOwner;\n}"
+    },
+    {
+      "id": "ERR-003",
+      "type": "Access Control Issue",
+      "severity": "Medium",
+      "line": 32,
+      "description": "AccessControlBug.privileged() (test_contracts/AccessControlBug.sol#30-34) uses tx.origin for authorization, which is vulnerable to phishing attacks through contract intermediaries.",
+      "codeSnippet": "require(tx.origin == owner, \"not owner\");"
+    },
+    {
+      "id": "ERR-004",
+      "type": "Compiler Version",
+      "severity": "Informational",
+      "line": 2,
+      "description": "Version constraint ^0.8.20 contains known severe issues (https://solidity.readthedocs.io/en/latest/bugs.html)",
+      "codeSnippet": "pragma solidity ^0.8.20;"
+    }
+  ]
+}

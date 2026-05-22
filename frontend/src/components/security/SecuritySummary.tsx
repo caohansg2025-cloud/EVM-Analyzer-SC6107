@@ -3,28 +3,28 @@
  *
  * Design reference: docs/frontend-design.md §10.5
  *
- * Displays:
+ * Displays five fields and a per-severity count breakdown:
  *   - Contract name (e.g. "VulnerableVault")
  *   - Contract address (truncated, copyable via AddressDisplay)
- *   - Scan status badge (Completed / CompletedWithNoFindings / Failed / Pending)
- *   - Inline error block when scanStatus === "Failed"  ← Phase 5
- *   - Tools used (e.g. "Slither v0.11.5")
- *   - Per-severity counts (e.g. "1 High · 0 Medium · 0 Low · 2 Info")
+ *   - Scan status badge (Completed / Failed / Pending)
+ *   - Tools used (e.g. "Slither v0.10.0")
+ *   - Severity counts (e.g. "1 High · 1 Medium · 0 Low · 0 Informational")
  *
  * Server-renderable — interactive state delegated to AddressDisplay.
  */
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { AddressDisplay } from "@/components/shared/AddressDisplay";
-import type { SecurityResponse, ScanStatus, Severity } from "@/types/security";
+import type { SecurityResponse, Severity } from "@/types/security";
 
 interface SecuritySummaryProps {
   data: SecurityResponse;
 }
 
 /**
- * Build a severity → count map from the vulnerability list. Pre-initialise
- * all four levels to 0 so the rendered summary always shows every category.
+ * Build a severity → count map from the vulnerability list. We initialise
+ * all four levels to 0 so the rendered summary always shows every category
+ * (it's reassuring to see "0 High" rather than no row at all).
  */
 function buildCounts(data: SecurityResponse): Record<Severity, number> {
   const counts: Record<Severity, number> = {
@@ -37,20 +37,10 @@ function buildCounts(data: SecurityResponse): Record<Severity, number> {
   return counts;
 }
 
-/** Tailwind class for the status badge. */
-const STATUS_COLORS: Record<ScanStatus, string> = {
+const STATUS_COLORS: Record<string, string> = {
   Completed: "bg-green-600 hover:bg-green-600 text-white",
-  CompletedWithNoFindings: "bg-emerald-600 hover:bg-emerald-600 text-white",
   Failed: "bg-red-600 hover:bg-red-600 text-white",
   Pending: "bg-gray-500 hover:bg-gray-500 text-white",
-};
-
-/** Friendlier short label for the badge. */
-const STATUS_LABELS: Record<ScanStatus, string> = {
-  Completed: "Completed",
-  CompletedWithNoFindings: "No findings",
-  Failed: "Failed",
-  Pending: "Pending",
 };
 
 export function SecuritySummary({ data }: SecuritySummaryProps) {
@@ -64,22 +54,10 @@ export function SecuritySummary({ data }: SecuritySummaryProps) {
             <h2 className="text-lg font-semibold">{data.contractName}</h2>
             <AddressDisplay address={data.contractAddress} length="long" />
           </div>
-          <Badge className={`${STATUS_COLORS[data.scanStatus]} text-xs`}>
-            {STATUS_LABELS[data.scanStatus]}
+          <Badge className={`${STATUS_COLORS[data.scanStatus] ?? STATUS_COLORS.Pending} text-xs`}>
+            {data.scanStatus}
           </Badge>
         </div>
-
-        {/* Phase 5 — surface the backend error message when Slither failed. */}
-        {data.scanStatus === "Failed" && data.error && (
-          <div className="rounded-md bg-destructive/10 border border-destructive/40 px-3 py-2">
-            <p className="text-xs uppercase tracking-wide text-destructive font-medium mb-1">
-              Scanner error
-            </p>
-            <p className="text-sm font-mono text-foreground break-words">
-              {data.error}
-            </p>
-          </div>
-        )}
 
         <div className="flex items-center gap-4 flex-wrap text-xs text-muted-foreground">
           <span>

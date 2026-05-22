@@ -2,33 +2,23 @@
   "contractAddress": "0x7a250d5630b4cf539739df2c5dacb4c659f2488d",
   "contractName": "VulnerableVault",
   "scanStatus": "Completed",
-  "toolsUsed": [
-    "Slither v0.11.5"
-  ],
+  "toolsUsed": ["Slither v0.10.0"],
   "vulnerabilities": [
     {
       "id": "ERR-001",
       "type": "Reentrancy",
       "severity": "High",
-      "line": 22,
-      "description": "Reentrancy in VulnerableVault.withdraw(uint256) (test_contracts/VulnerableVault.sol#17-26)",
-      "codeSnippet": "(bool ok, ) = msg.sender.call{value: amount}(\"\");"
+      "line": 42,
+      "description": "在 'withdrawFunds' 函数中检测到重入风险。状态变量在外部转账（CALL）之后才被修改，违反了检查-效果-交互（Checks-Effects-Interactions）模式 [cite: 313, 411-412, 416]。",
+      "codeSnippet": "msg.sender.call{value: amount}(\"\"); balances[msg.sender] -= amount;"
     },
     {
       "id": "ERR-002",
-      "type": "Compiler Version",
-      "severity": "Informational",
-      "line": 2,
-      "description": "Version constraint ^0.8.20 contains known severe issues (https://solidity.readthedocs.io/en/latest/bugs.html)",
-      "codeSnippet": "pragma solidity ^0.8.20;"
-    },
-    {
-      "id": "ERR-003",
-      "type": "Unchecked External Call",
-      "severity": "Informational",
-      "line": 22,
-      "description": "Low level call in VulnerableVault.withdraw(uint256) (test_contracts/VulnerableVault.sol#17-26)",
-      "codeSnippet": "(bool ok, ) = msg.sender.call{value: amount}(\"\");"
+      "type": "Access Control Bypass",
+      "severity": "Medium",
+      "line": 89,
+      "description": "'emergencyDrain' 函数缺乏 'onlyOwner' 权限修饰符，允许任何人提取全额归集资金 [cite: 316, 411, 415]。",
+      "codeSnippet": "function emergencyDrain() external { _transfer(msg.sender, address(this).balance); }"
     }
   ]
 }

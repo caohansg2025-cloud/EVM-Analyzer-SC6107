@@ -11,6 +11,7 @@
     "value": "1.5 ETH",
     "gasUsed": 125000,
     "functionName": "swapExactETHForTokens(uint amountOutMin, address[] path, address to, uint deadline)",
+    "logs": [],
     "calls": [
       {
         "type": "CALL",
@@ -19,6 +20,7 @@
         "value": "1.5 ETH",
         "gasUsed": 25000,
         "functionName": "deposit()",
+        "logs": [],
         "calls": []
       },
       {
@@ -28,6 +30,7 @@
         "value": "0 ETH",
         "gasUsed": 85000,
         "functionName": "uniswapV3Swap(bytes path, address recipient, uint256 amountIn)",
+        "logs": [],
         "calls": []
       }
     ]

@@ -7,10 +7,8 @@
  * STRATEGY: "Mock-first switch"
  *   When NEXT_PUBLIC_USE_MOCKS=true:
  *     -> returns the canned JSON from src/mocks/ after a 300ms delay.
- *     -> Used for fully-offline frontend dev when the backend isn't running.
  *   When NEXT_PUBLIC_USE_MOCKS=false:
  *     -> fetches from the real backend at NEXT_PUBLIC_API_BASE_URL.
- *     -> The backend itself decides whether to mock or to query Alchemy/Slither.
  *
  * Endpoint conventions:
  *   GET /api/trace/:txHash       -> TraceResponse
@@ -18,15 +16,17 @@
  *   GET /api/security/:address   -> SecurityResponse
  *
  * Security routing — special case:
- *   The backend's mock mode hard-codes ONE security JSON file and only swaps
- *   the contractAddress field, so picking different contracts in the dropdown
- *   would show identical findings. To deliver demo variety without requiring
- *   real Slither setup (solc-select + Slither + ~15s/scan), the frontend
- *   keeps a per-address override map for the four known sample contracts.
- *   Arbitrary pasted addresses fall through to the standard env-flag logic.
+ *   The current backend (backend/app/main.py, maintained by another teammate)
+ *   hard-codes ONE security mock file and only swaps the contractAddress
+ *   field, so picking different contracts in the dropdown would return
+ *   identical findings. To deliver demo variety WITHOUT touching the
+ *   teammate's backend code, the frontend keeps a per-address override
+ *   map for the four known sample contracts. Arbitrary pasted addresses
+ *   fall through to the standard env-flag logic.
  *
- *   See docs/security-mock-architecture.md for the full rationale and the
- *   path back to pure backend-driven routing when the team is ready.
+ *   The wire format is identical to what the backend returns -- only the
+ *   choice of "which JSON to return" lives in the frontend for the four
+ *   demo addresses.
  */
 
 import traceMock from "@/mocks/trace_response.json";
