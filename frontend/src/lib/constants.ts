@@ -10,7 +10,14 @@
  * actually trace.
  *
  * SAMPLE_CONTRACTS feeds the contract-address picker on the Security tab.
- * Its single entry matches the contract address in security_response.json.
+ *
+ * Phase 4 adaptation:
+ *   - The Position 3 CLI scans local file paths, not on-chain addresses.
+ *     The frontend Security tab still wants an "id-shaped" value for the
+ *     SWR cache key, so we use the test-contracts' file basenames hex-encoded
+ *     into a placeholder address. When the live backend wraps the CLI behind
+ *     an HTTP endpoint, the addresses should be replaced with real ones (or
+ *     the endpoint can accept the basename / contract name directly).
  */
 
 export interface SampleTx {
@@ -28,10 +35,35 @@ export const SAMPLE_TXS: SampleTx[] = [
   },
 ];
 
-/** Pinned demo contracts — kept in sync with src/mocks/security_response.json. */
+/**
+ * Pinned demo contracts. The first entry matches our locked mock JSON.
+ *
+ * The other four entries point at the actual fixture files in
+ * `test_contracts/`. Until the backend exposes them through an HTTP
+ * endpoint with real addresses, picking these from the dropdown will
+ * return the same mock JSON via `src/lib/api.ts` (the mock fetcher
+ * ignores the address). Once a real backend lands, swap the placeholder
+ * addresses for the real on-chain ids or move to a name-based picker.
+ */
 export const SAMPLE_CONTRACTS: { label: string; address: string }[] = [
   {
-    label: "VulnerableVault (Reentrancy demo)",
+    label: "VulnerableVault (Reentrancy demo) — locked mock",
     address: "0x7a250d5630b4cf539739df2c5dacb4c659f2488d",
+  },
+  {
+    label: "AccessControlBug.sol — Slither fixture",
+    address: "0x0000000000000000000000000000000000000A11",
+  },
+  {
+    label: "OverflowToken.sol — Slither fixture",
+    address: "0x0000000000000000000000000000000000000B22",
+  },
+  {
+    label: "UncheckedCall.sol — Slither fixture",
+    address: "0x0000000000000000000000000000000000000C33",
+  },
+  {
+    label: "VulnerableVault.sol — Slither fixture",
+    address: "0x0000000000000000000000000000000000000D44",
   },
 ];

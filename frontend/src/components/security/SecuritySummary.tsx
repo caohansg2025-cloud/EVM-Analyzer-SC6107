@@ -5,17 +5,23 @@
  *
  * Displays five fields and a per-severity count breakdown:
  *   - Contract name (e.g. "VulnerableVault")
- *   - Contract address (truncated, copyable via AddressDisplay)
- *   - Scan status badge (Completed / Failed / Pending)
+ *   - Contract address (truncated, copyable) OR "Local file scan" placeholder
+ *   - Scan status badge (Completed / CompletedWithNoFindings / Failed / Pending)
  *   - Tools used (e.g. "Slither v0.10.0")
  *   - Severity counts (e.g. "1 High · 1 Medium · 0 Low · 0 Informational")
  *
+ * Phase 4 adaptation:
+ *   - Handle `contractAddress: null` (CLI scans of local files have no on-chain id)
+ *   - Handle the new "CompletedWithNoFindings" status
+ *   - Surface the `error` field when `scanStatus === "Failed"`
+ *
  * Server-renderable — interactive state delegated to AddressDisplay.
  */
+import { FileCode } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { AddressDisplay } from "@/components/shared/AddressDisplay";
-import type { SecurityResponse, Severity } from "@/types/security";
+import type { SecurityResponse, ScanStatus, Severity } from "@/types/security";
 
 interface SecuritySummaryProps {
   data: SecurityResponse;
@@ -37,10 +43,20 @@ function buildCounts(data: SecurityResponse): Record<Severity, number> {
   return counts;
 }
 
-const STATUS_COLORS: Record<string, string> = {
+/** Tailwind class for the status badge. Phase 4 adds CompletedWithNoFindings. */
+const STATUS_COLORS: Record<ScanStatus, string> = {
   Completed: "bg-green-600 hover:bg-green-600 text-white",
+  CompletedWithNoFindings: "bg-emerald-600 hover:bg-emerald-600 text-white",
   Failed: "bg-red-600 hover:bg-red-600 text-white",
   Pending: "bg-gray-500 hover:bg-gray-500 text-white",
+};
+
+/** Slightly nicer label for the long status name. */
+const STATUS_LABELS: Record<ScanStatus, string> = {
+  Completed: "Completed",
+  CompletedWithNoFindings: "No findings",
+  Failed: "Failed",
+  Pending: "Pending",
 };
 
 export function SecuritySummary({ data }: SecuritySummaryProps) {
@@ -50,14 +66,37 @@ export function SecuritySummary({ data }: SecuritySummaryProps) {
     <Card>
       <CardContent className="py-4 space-y-3">
         <div className="flex items-start justify-between flex-wrap gap-3">
-          <div>
+          <div className="space-y-1">
             <h2 className="text-lg font-semibold">{data.contractName}</h2>
-            <AddressDisplay address={data.contractAddress} length="long" />
+            {/*
+             * Phase 4: contractAddress may be null when scanning a local file
+             * (Position 3's CLI). Show a neutral placeholder instead.
+             */}
+            {data.contractAddress ? (
+              <AddressDisplay address={data.contractAddress} length="long" />
+            ) : (
+              <span className="inline-flex items-center gap-1 text-xs text-muted-foreground font-mono">
+                <FileCode className="w-3 h-3" />
+                Local file scan (no on-chain address)
+              </span>
+            )}
           </div>
-          <Badge className={`${STATUS_COLORS[data.scanStatus] ?? STATUS_COLORS.Pending} text-xs`}>
-            {data.scanStatus}
+          <Badge className={`${STATUS_COLORS[data.scanStatus]} text-xs`}>
+            {STATUS_LABELS[data.scanStatus]}
           </Badge>
         </div>
+
+        {/* Phase 4: surface the backend error message when the scan failed. */}
+        {data.scanStatus === "Failed" && data.error && (
+          <div className="rounded-md bg-destructive/10 border border-destructive/40 px-3 py-2">
+            <p className="text-xs uppercase tracking-wide text-destructive font-medium mb-1">
+              Scanner error
+            </p>
+            <p className="text-sm font-mono text-foreground break-words">
+              {data.error}
+            </p>
+          </div>
+        )}
 
         <div className="flex items-center gap-4 flex-wrap text-xs text-muted-foreground">
           <span>

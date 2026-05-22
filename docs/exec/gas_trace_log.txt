@@ -1,0 +1,29 @@
+Console
+
+--- backend api trace called ---
+fetching tx:  0x7f368ae37aa808f8d56a6cab8547ad5f9decd86a359f624bf94b116d107e0e84   ...
+tx loaded
+ 
+requesting trace...
+trace received
+========== Raw Trace Beg ==========
+{ gas: 21000, failed: false, returnValue: '0x', structLogs: [] }
+========== Raw Trace End ==========
+ 
+Trace Summary:
+total opcodes: 0
+gas by opcode:
+┌─────────┐
+│ (index) │
+├─────────┤
+└─────────┘
+backend api trace exec successfully
+
+
+Gas page detail:
+{
+  "gas": 21000,
+  "failed": false,
+  "returnValue": "0x",
+  "structLogs": []
+}
