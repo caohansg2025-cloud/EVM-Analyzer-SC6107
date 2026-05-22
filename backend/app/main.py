@@ -195,7 +195,14 @@ def get_trace(tx_hash: str):
         }
     except Exception as e:
         logger.error(f"Error fetching real trace for {clean_tx_hash}: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        error_msg = str(e)
+        # ch：精准拦截 Alchemy 免费节点的限制
+        if "Free tier" in error_msg or "not available" in error_msg or "400" in error_msg:
+            raise HTTPException(
+                status_code=403, 
+                detail="RPC 节点无权限执行此高级追踪 (Free tier 限制)。请在 .env 中配置 USE_MOCK=True 切换至本地双引擎模式体验。"
+            )
+        raise HTTPException(status_code=500, detail=error_msg)
 
 @app.get("/api/gas-state/{tx_hash}")
 def get_gas_state(tx_hash: str):
