@@ -392,3 +392,8 @@ Roadmap candidates beyond the course scope live at the bottom of [`docs/architec
 ## License
 
 Released under the [MIT License](LICENSE) — © 2026 caohansg2025-cloud.
+
+---
+
+> [!NOTE]
+> **AI Assistance Disclosure** — Portions of this project (code, documentation, and debugging) were produced with the help of AI coding assistants (e.g. Claude, ChatGPT).
