@@ -1,0 +1,8 @@
+{
+  "0x1111111254fb6c44bac0bed2854e76f90643097d": "1inch_router.json",
+  "0x6b175474e89094c44da98b954eedeac495271d0f": "dai.json",
+  "0x1f98431c8ad98523631ae4a59f267346ea31f984": "uni_v3_factory.json",
+  "0x68b3465833fb72a70ecdf485e0e4c7bd8665fc45": "uni_v3_router.json",
+  "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48": "usdc.json",
+  "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2": "weth9.json"
+}

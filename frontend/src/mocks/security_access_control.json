@@ -1,17 +1,15 @@
 {
-  "contractAddress": "0x1111111111111111111111111111111111111111",
+  "contractAddress": "0x71c7656ec7ab88b098defb751b7401b5f6d8976f",
   "contractName": "AccessControlBug",
   "scanStatus": "Completed",
-  "toolsUsed": [
-    "Slither v0.11.5"
-  ],
+  "toolsUsed": ["Slither v0.11.5"],
   "vulnerabilities": [
     {
       "id": "ERR-001",
       "type": "Access Control Issue",
       "severity": "High",
       "line": 18,
-      "description": "AccessControlBug.withdrawAll() (test_contracts/AccessControlBug.sol#15-20) transfers ether to msg.sender without any access control. Any caller can drain the contract.",
+      "description": "AccessControlBug.withdrawAll() (test_contracts/AccessControlBug.sol#15-20) transfers ether to msg.sender without any access control. Any caller can drain the contract balance in a single transaction.",
       "codeSnippet": "function withdrawAll() external {\n    payable(msg.sender).transfer(address(this).balance);\n}"
     },
     {
@@ -27,7 +25,7 @@
       "type": "Access Control Issue",
       "severity": "Medium",
       "line": 32,
-      "description": "AccessControlBug.privileged() (test_contracts/AccessControlBug.sol#30-34) uses tx.origin for authorization, which is vulnerable to phishing attacks.",
+      "description": "AccessControlBug.privileged() (test_contracts/AccessControlBug.sol#30-34) uses tx.origin for authorization, which is vulnerable to phishing attacks through contract intermediaries.",
       "codeSnippet": "require(tx.origin == owner, \"not owner\");"
     },
     {

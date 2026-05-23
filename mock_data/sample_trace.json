@@ -1,0 +1,20 @@
+{
+  "tx_hash": "0xAdvancedDeFiTransactionSimulation000000000000",
+  "status": "success",
+  "calls": [
+    {
+      "type": "CALL",
+      "from": "0xUserAddress",
+      "to": "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2", 
+      "value": "1000000000000000000",
+      "input": "0xd0e30db0"
+    },
+    {
+      "type": "CALL",
+      "from": "0xUserAddress",
+      "to": "0xUnknownShitCoinAddress9999999999999999",
+      "value": "0",
+      "input": "0xa9059cbb00000000000000000000000012345678901234567890123456789012345678900000000000000000000000000000000000000000000000000000000000002710"
+    }
+  ]
+}

@@ -1,5 +1,5 @@
 {
-  "contractAddress": "0x1111111111111111111111111111111111111111",
+  "contractAddress": "0x71c7656ec7ab88b098defb751b7401b5f6d8976f",
   "contractName": "AccessControlBug",
   "scanStatus": "Completed",
   "toolsUsed": ["Slither v0.11.5"],

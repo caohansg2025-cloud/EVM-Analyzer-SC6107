@@ -1,5 +1,5 @@
 {
-  "contractAddress": "0x3333333333333333333333333333333333333333",
+  "contractAddress": "0x39a0459c98ef573a483e589cf49f39088ab58382",
   "contractName": "OverflowToken",
   "scanStatus": "Completed",
   "toolsUsed": ["Slither v0.11.5"],
